@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ваш Новый Дом в Турине</title>
+  <link rel="icon" type="image/png" href="https://cdn.gamma.app/ljw575o2j8wdd3v/8d3e4fb260b346fcb6fc1c2327a2d53a/original/0facd936-5f1c-4147-b172-20da7ce516b0.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -563,6 +564,24 @@
     });
 
     const anchorLinks = Array.from(document.querySelectorAll('a[href^="#"]'));
+
+    function getHeaderOffset() {
+      const header = document.querySelector('header');
+      const baseOffset = header ? header.offsetHeight : 72;
+      return window.innerWidth < 768 ? baseOffset + 10 : baseOffset + 6;
+    }
+
+    function scrollToAnchor(target, href) {
+      const offset = getHeaderOffset();
+      const top = Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - offset);
+      window.scrollTo({ top, behavior: 'smooth' });
+      if (href === '#top') {
+        history.replaceState(null, '', ' ');
+      } else {
+        history.replaceState(null, '', href);
+      }
+    }
+
     anchorLinks.forEach((link) => {
       link.addEventListener('click', (event) => {
         const href = link.getAttribute('href');
@@ -570,12 +589,14 @@
         const target = document.querySelector(href);
         if (!target) return;
         event.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const wasMobileMenuOpen = window.innerWidth < 768 && mobileMenuButton?.getAttribute('aria-expanded') === 'true';
         setMobileMenu(false);
-        if (href === '#top') {
-          history.replaceState(null, '', ' ');
+        if (wasMobileMenuOpen) {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => scrollToAnchor(target, href));
+          });
         } else {
-          history.replaceState(null, '', href);
+          scrollToAnchor(target, href);
         }
       });
     });
