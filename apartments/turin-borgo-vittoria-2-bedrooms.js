@@ -7,7 +7,7 @@ window.registerApartment({
         { type: 'image', src: './assets/turin-borgo-vittoria-2-bedrooms/cover.jpg', alt: 'photo' },
         {
             type: 'video',
-            src: './assets/turin-borgo-vittoria-2-bedrooms/video.mp4',
+            src: './assets/turin-borgo-vittoria-2-bedrooms/video.MP4',
             poster: './assets/turin-borgo-vittoria-2-bedrooms/cover.jpg',
             alt: 'video'
         }
