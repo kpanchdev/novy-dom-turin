@@ -1,246 +1,311 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Polex Estate</title>
-  <link rel="icon" type="image/png" href="./assets/polex-estate-logo.png" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { overflow-x: hidden; }
-    .card-shadow { box-shadow: 0 18px 50px rgba(28, 25, 23, .08); }
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
-    .reveal.is-visible { opacity: 1; transform: translateY(0); }
-    .media-thumb img { transition: transform .45s ease; }
-    .media-thumb:hover img { transform: scale(1.04); }
-    .card-desc {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      transition: max-height .34s ease, opacity .22s ease, margin-top .22s ease;
-      margin-top: 0;
-    }
-    .card-desc.is-open { opacity: 1; margin-top: 1rem; }
-    .lightbox { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
-    .lightbox.is-open { opacity: 1; pointer-events: auto; }
-    .lang-btn.is-active,
-    .tab-btn.is-active {
-        background: #1c1917 !important;
-        color: #fff !important;
-        box-shadow: 0 2px 10px rgba(28,25,23,.12) !important;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polex Estate</title>
+    <link rel="icon" type="image/png" href="./assets/polex-estate-logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+
+    <style>
+        body { overflow-x: hidden; }
+        .card-shadow { box-shadow: 0 18px 50px rgba(28, 25, 23, .08); }
+        .reveal { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+        .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .media-thumb img { transition: transform .45s ease; }
+        .media-thumb:hover img { transform: scale(1.04); }
+        .card-desc {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height .34s ease, opacity .22s ease, margin-top .22s ease;
+            margin-top: 0;
+        }
+        .card-desc.is-open { opacity: 1; margin-top: 1rem; }
+        .lightbox { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+        .lightbox.is-open { opacity: 1; pointer-events: auto; }
+        .lang-btn.is-active,
+        .tab-btn.is-active {
+            background: #1c1917 !important;
+            color: #fff !important;
+            box-shadow: 0 2px 10px rgba(28,25,23,.12) !important;
+        }
+
+        /* Стили для корректного отображения Plyr в лайтбоксе */
+        #lightboxStage .plyr {
+            width: fit-content !important;
+            max-width: 100%;
+            border-radius: 1rem;
+            overflow: hidden;
+            --plyr-color-main: #10b981;
+            margin: 0 auto; /* Центрируем, если видео узкое */
+        }
+
+        #lightboxStage .plyr__video-wrapper {
+            width: fit-content !important;
+            max-width: 100%;
+        }
+
+        #lightboxStage .plyr video {
+            display: block;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            /* Ограничиваем высоту, чтобы осталось место для счетчика, кнопки закрытия и миниатюр внизу */
+            max-height: 75vh !important;
+        }
+        #lightboxStage .plyr.plyr--fullscreen,
+        #lightboxStage .plyr:fullscreen,
+        :fullscreen {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+
+        #lightboxStage .plyr.plyr--fullscreen .plyr__video-wrapper,
+        #lightboxStage .plyr:fullscreen .plyr__video-wrapper,
+        :fullscreen .plyr__video-wrapper {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+        }
+
+        #lightboxStage .plyr.plyr--fullscreen video,
+        #lightboxStage .plyr:fullscreen video,
+        video:fullscreen,
+        #lightboxStage .plyr.plyr--fullscreen .plyr__video-wrapper video,
+        :fullscreen .plyr__video-wrapper video {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            object-fit: contain !important;   /* ← растягивает на весь экран (обрезает края если нужно). Если не хотите обрезать вертикальные видео - замените на contain */
+            border-radius: 0 !important;
+        }
+    </style>
 </head>
 <body class="bg-stone-50 text-stone-900 antialiased">
-  <header class="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur">
+<header class="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-      <div class="flex min-w-0 items-center gap-3">
-        <img src="./assets/polex-estate-logo.png" alt="Polex Estate" class="h-12 w-12 rounded-2xl border border-stone-200 object-cover sm:h-14 sm:w-14" />
-        <div class="min-w-0">
-          <div class="truncate text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">Polex Estate</div>
-          <div id="brandSubtitle" class="truncate text-sm text-stone-500"></div>
+        <div class="flex min-w-0 items-center gap-3">
+            <img src="./assets/polex-estate-logo.png" alt="Polex Estate" class="h-12 w-12 rounded-2xl border border-stone-200 object-cover sm:h-14 sm:w-14" />
+            <div class="min-w-0">
+                <div class="truncate text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">Polex Estate</div>
+                <div id="brandSubtitle" class="truncate text-sm text-stone-500"></div>
+            </div>
         </div>
-      </div>
-      <div class="inline-flex rounded-full border border-stone-200 bg-white p-1 shadow-sm">
-        <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="ru">RU</button>
-        <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="uk">UA</button>
-        <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="it">IT</button>
-      </div>
+        <div class="inline-flex rounded-full border border-stone-200 bg-white p-1 shadow-sm">
+            <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="ru">RU</button>
+            <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="uk">UA</button>
+            <button type="button" class="lang-btn rounded-full px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-lang="it">IT</button>
+        </div>
     </div>
-  </header>
+</header>
 
-  <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+<main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
     <div class="mb-6 flex justify-center sm:mb-8">
-      <div class="inline-flex rounded-full border border-stone-200 bg-white p-1 shadow-sm">
-        <button type="button" class="tab-btn rounded-full px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-tab="rent"></button>
-        <button type="button" class="tab-btn rounded-full px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-tab="future"></button>
-      </div>
+        <div class="inline-flex rounded-full border border-stone-200 bg-white p-1 shadow-sm">
+            <button type="button" class="tab-btn rounded-full px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-tab="rent"></button>
+            <button type="button" class="tab-btn rounded-full px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100" data-tab="future"></button>
+        </div>
     </div>
 
     <div id="emptyState" class="hidden rounded-[2rem] border border-dashed border-stone-300 bg-white px-6 py-12 text-center text-stone-600"></div>
     <div id="apartmentsGrid" class="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3"></div>
-  </main>
+</main>
 
-  <div id="lightbox" class="lightbox fixed inset-0 z-50 bg-black/90 px-3 py-4 sm:px-6 sm:py-6" aria-hidden="true">
+<div id="lightbox" class="lightbox fixed inset-0 z-50 bg-black/90 px-3 py-4 sm:px-6 sm:py-6" aria-hidden="true">
     <div id="lightboxBackdrop" class="absolute inset-0"></div>
     <div class="relative mx-auto flex h-full max-w-6xl flex-col">
-      <div class="mb-3 flex items-center justify-between gap-3 text-white">
-        <div class="min-w-0">
-          <div id="lightboxCounter" class="text-sm font-medium text-white/75"></div>
-          <div id="lightboxCaption" class="truncate text-base font-medium"></div>
+        <div class="mb-3 flex items-center justify-between gap-3 text-white">
+            <div class="min-w-0">
+                <div id="lightboxCounter" class="text-sm font-medium text-white/75"></div>
+                <div id="lightboxCaption" class="truncate text-base font-medium"></div>
+            </div>
+            <button id="lightboxClose" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10" aria-label="Close gallery">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </div>
-        <button id="lightboxClose" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10" aria-label="Close gallery">
-          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        </button>
-      </div>
-      <div class="relative flex min-h-0 flex-1 items-center justify-center">
-        <button id="lightboxPrev" type="button" class="absolute left-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:left-3" aria-label="Previous">
-          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div id="lightboxStage" class="relative flex h-full w-full items-center justify-center"></div>
-        <button id="lightboxNext" type="button" class="absolute right-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:right-3" aria-label="Next">
-          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-        </button>
-      </div>
-      <div id="lightboxThumbs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
+        <div class="relative flex min-h-0 flex-1 items-center justify-center">
+            <button id="lightboxPrev" type="button" class="absolute left-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:left-3" aria-label="Previous">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div id="lightboxStage" class="relative flex h-full w-full items-center justify-center"></div>
+            <button id="lightboxNext" type="button" class="absolute right-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:right-3" aria-label="Next">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+        </div>
+        <div id="lightboxThumbs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
     </div>
-  </div>
+</div>
 
-  <script>
+<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+<script>
     window.__APARTMENTS = [];
     window.registerApartment = function(apartment) {
-      if (apartment) window.__APARTMENTS.push(apartment);
+        if (apartment) window.__APARTMENTS.push(apartment);
     };
-  </script>
-  <script src="./apartments-registry.js"></script>
-  <script>
+</script>
+<script src="./apartments-registry.js"></script>
+<script>
     (function loadApartmentFiles() {
-      const files = Array.isArray(window.APARTMENT_FILES) ? window.APARTMENT_FILES : [];
-      files.forEach((src) => {
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = false;
-        document.body.appendChild(script);
-      });
+        const files = Array.isArray(window.APARTMENT_FILES) ? window.APARTMENT_FILES : [];
+        files.forEach((src) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.async = false;
+            document.body.appendChild(script);
+        });
     })();
-  </script>
-  <script>
+</script>
+<script>
     window.addEventListener('load', function () {
-      const apartments = Array.isArray(window.__APARTMENTS) ? window.__APARTMENTS.filter(Boolean) : [];
-      const grid = document.getElementById('apartmentsGrid');
-      const emptyState = document.getElementById('emptyState');
-      const langButtons = Array.from(document.querySelectorAll('.lang-btn'));
-      const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
-      const brandSubtitle = document.getElementById('brandSubtitle');
+        const apartments = Array.isArray(window.__APARTMENTS) ? window.__APARTMENTS.filter(Boolean) : [];
+        const grid = document.getElementById('apartmentsGrid');
+        const emptyState = document.getElementById('emptyState');
+        const langButtons = Array.from(document.querySelectorAll('.lang-btn'));
+        const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+        const brandSubtitle = document.getElementById('brandSubtitle');
 
-      const ui = {
-        ru: {
-          subtitle: 'Аренда квартир в Турине',
-          rentTab: 'Аренда',
-          futureTab: 'Будущая аренда',
-          details: 'Подробнее',
-          hide: 'Скрыть',
-          whatsapp: 'WhatsApp',
-          materials: 'материалов',
-          empty: 'Скоро здесь появятся новые варианты.',
-          galleryItem: 'Материал'
-        },
-        uk: {
-          subtitle: 'Оренда квартир у Турині',
-          rentTab: 'Оренда',
-          futureTab: 'Майбутня оренда',
-          details: 'Детальніше',
-          hide: 'Сховати',
-          whatsapp: 'WhatsApp',
-          materials: 'матеріалів',
-          empty: 'Незабаром тут зʼявляться нові варіанти.',
-          galleryItem: 'Матеріал'
-        },
-        it: {
-          subtitle: 'Affitti a Torino',
-          rentTab: 'Affitto',
-          futureTab: 'Prossime disponibilità',
-          details: 'Dettagli',
-          hide: 'Chiudi',
-          whatsapp: 'WhatsApp',
-          materials: 'contenuti',
-          empty: 'Presto qui compariranno nuove soluzioni.',
-          galleryItem: 'Contenuto'
-        }
-      };
-
-      function getPreferredLang() {
-        const params = new URLSearchParams(window.location.search);
-        const urlLang = params.get('lang');
-        if (urlLang && ui[urlLang]) return urlLang;
-        const saved = localStorage.getItem('polexLang');
-        if (saved && ui[saved]) return saved;
-        const browserLang = (navigator.language || 'ru').slice(0, 2).toLowerCase();
-        if (ui[browserLang]) return browserLang;
-        return 'ru';
-      }
-
-      let currentLang = getPreferredLang();
-      let activeTab = 'rent';
-      let openCardId = null;
-
-      const lightbox = document.getElementById('lightbox');
-      const lightboxBackdrop = document.getElementById('lightboxBackdrop');
-      const stage = document.getElementById('lightboxStage');
-      const caption = document.getElementById('lightboxCaption');
-      const counter = document.getElementById('lightboxCounter');
-      const thumbs = document.getElementById('lightboxThumbs');
-      const closeBtn = document.getElementById('lightboxClose');
-      const prevBtn = document.getElementById('lightboxPrev');
-      const nextBtn = document.getElementById('lightboxNext');
-      let lightboxItems = [];
-      let lightboxIndex = 0;
-      let touchStartX = 0;
-      let touchDeltaX = 0;
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.12 });
-
-      function t(key) {
-        return ui[currentLang][key] || ui.ru[key] || '';
-      }
-
-      function getLocalizedValue(apartment, key) {
-        const i18n = apartment.i18n || {};
-        const direct = apartment[key];
-        const val = i18n[currentLang]?.[key] ?? i18n.ru?.[key] ?? direct;
-        return typeof val === 'string' ? val.trim() : (val || '');
-      }
-
-      function localized(apartment) {
-        return {
-          title: getLocalizedValue(apartment, 'title'),
-          price: getLocalizedValue(apartment, 'price'),
-          address: getLocalizedValue(apartment, 'address'),
-          description: getLocalizedValue(apartment, 'description'),
-          mapsUrl: getLocalizedValue(apartment, 'mapsUrl') || apartment.mapsUrl || ''
+        const ui = {
+            ru: {
+                subtitle: 'Аренда квартир в Турине',
+                rentTab: 'Аренда',
+                futureTab: 'Будущая аренда',
+                details: 'Подробнее',
+                hide: 'Скрыть',
+                whatsapp: 'WhatsApp',
+                materials: '<svg viewBox="0 0 24 24" aria-hidden="true" style="display:inline-block;width:1em;height:1em;vertical-align:-0.125em" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="18" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5.5-5.5a1 1 0 0 0-1.4 0L8 16"/><path d="M13 16l-2.5-2.5a1 1 0 0 0-1.4 0L6.5 16"/></svg>',
+                empty: 'Скоро здесь появятся новые варианты.',
+                galleryItem: 'Материал'
+            },
+            uk: {
+                subtitle: 'Оренда квартир у Турині',
+                rentTab: 'Оренда',
+                futureTab: 'Майбутня оренда',
+                details: 'Детальніше',
+                hide: 'Сховати',
+                whatsapp: 'WhatsApp',
+                materials: '<svg viewBox="0 0 24 24" aria-hidden="true" style="display:inline-block;width:1em;height:1em;vertical-align:-0.125em" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="18" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5.5-5.5a1 1 0 0 0-1.4 0L8 16"/><path d="M13 16l-2.5-2.5a1 1 0 0 0-1.4 0L6.5 16"/></svg>',
+                empty: 'Незабаром тут зʼявляться нові варіанти.',
+                galleryItem: 'Матеріал'
+            },
+            it: {
+                subtitle: 'Affitti a Torino',
+                rentTab: 'Affitto',
+                futureTab: 'Prossime disponibilità',
+                details: 'Dettagli',
+                hide: 'Chiudi',
+                whatsapp: 'WhatsApp',
+                materials: '<svg viewBox="0 0 24 24" aria-hidden="true" style="display:inline-block;width:1em;height:1em;vertical-align:-0.125em" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="18" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5.5-5.5a1 1 0 0 0-1.4 0L8 16"/><path d="M13 16l-2.5-2.5a1 1 0 0 0-1.4 0L6.5 16"/></svg>',
+                empty: 'Presto qui compariranno nuove soluzioni.',
+                galleryItem: 'Contenuto'
+            }
         };
-      }
 
-      function listingType(apartment) {
-        return apartment.listingType === 'future' ? 'future' : 'rent';
-      }
+        function getPreferredLang() {
+            const params = new URLSearchParams(window.location.search);
+            const urlLang = params.get('lang');
+            if (urlLang && ui[urlLang]) return urlLang;
+            const saved = localStorage.getItem('polexLang');
+            if (saved && ui[saved]) return saved;
+            const browserLang = (navigator.language || 'ru').slice(0, 2).toLowerCase();
+            if (ui[browserLang]) return browserLang;
+            return 'ru';
+        }
 
-      function mediaItems(apartment) {
-        const gallery = Array.isArray(apartment.gallery) ? apartment.gallery : [];
-        return gallery.filter((item) => item && item.src);
-      }
+        let currentLang = getPreferredLang();
+        let activeTab = 'rent';
+        let openCardId = null;
 
-      function updateLangUI() {
-        document.documentElement.lang = currentLang;
-        document.title = 'Polex Estate';
-        brandSubtitle.textContent = t('subtitle');
-        emptyState.textContent = t('empty');
-        tabButtons.forEach((btn) => {
-          btn.textContent = btn.dataset.tab === 'rent' ? t('rentTab') : t('futureTab');
-        });
-        langButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.lang === currentLang));
-      }
+        const lightbox = document.getElementById('lightbox');
+        const lightboxBackdrop = document.getElementById('lightboxBackdrop');
+        const stage = document.getElementById('lightboxStage');
+        const caption = document.getElementById('lightboxCaption');
+        const counter = document.getElementById('lightboxCounter');
+        const thumbs = document.getElementById('lightboxThumbs');
+        const closeBtn = document.getElementById('lightboxClose');
+        const prevBtn = document.getElementById('lightboxPrev');
+        const nextBtn = document.getElementById('lightboxNext');
+        let lightboxItems = [];
+        let lightboxIndex = 0;
+        let touchStartX = 0;
+        let touchDeltaX = 0;
 
-      function createCard(apartment, index) {
-        const data = localized(apartment);
-        const article = document.createElement('article');
-        article.className = 'reveal self-start overflow-hidden rounded-[2rem] border border-stone-200/80 bg-white card-shadow';
-        const cardId = apartment.id || `apartment-${index}`;
-        const media = mediaItems(apartment);
-        const materialsLabel = `${media.length || 1} ${t('materials')}`;
-        const hasPrice = Boolean(data.price);
-        const hasTitle = Boolean(data.title);
-        const mapsHref = data.mapsUrl || '#';
-        const safeCover = apartment.cover || media[0]?.src || 'https://placehold.co/1200x900/e7e5e4/78716c?text=Polex+Estate';
+        // Переменная для хранения активного экземпляра Plyr
+        let activePlyr = null;
 
-        article.innerHTML = `
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        function t(key) {
+            return ui[currentLang][key] || ui.ru[key] || '';
+        }
+
+        function getLocalizedValue(apartment, key) {
+            const i18n = apartment.i18n || {};
+            const direct = apartment[key];
+            const val = i18n[currentLang]?.[key] ?? i18n.ru?.[key] ?? direct;
+            return typeof val === 'string' ? val.trim() : (val || '');
+        }
+
+        function localized(apartment) {
+            return {
+                title: getLocalizedValue(apartment, 'title'),
+                price: getLocalizedValue(apartment, 'price'),
+                address: getLocalizedValue(apartment, 'address'),
+                description: getLocalizedValue(apartment, 'description'),
+                mapsUrl: getLocalizedValue(apartment, 'mapsUrl') || apartment.mapsUrl || ''
+            };
+        }
+
+        function listingType(apartment) {
+            return apartment.listingType === 'future' ? 'future' : 'rent';
+        }
+
+        function mediaItems(apartment) {
+            const gallery = Array.isArray(apartment.gallery) ? apartment.gallery : [];
+            return gallery.filter((item) => item && item.src);
+        }
+
+        function updateLangUI() {
+            document.documentElement.lang = currentLang;
+            document.title = 'Polex Estate';
+            brandSubtitle.textContent = t('subtitle');
+            emptyState.textContent = t('empty');
+            tabButtons.forEach((btn) => {
+                btn.textContent = btn.dataset.tab === 'rent' ? t('rentTab') : t('futureTab');
+            });
+            langButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.lang === currentLang));
+        }
+
+        function createCard(apartment, index) {
+            const data = localized(apartment);
+            const article = document.createElement('article');
+            article.className = 'reveal self-start overflow-hidden rounded-[2rem] border border-stone-200/80 bg-white card-shadow';
+            const cardId = apartment.id || `apartment-${index}`;
+            const media = mediaItems(apartment);
+            const materialsLabel = `${media.length || 1} ${t('materials')}`;
+            const hasPrice = Boolean(data.price);
+            const hasTitle = Boolean(data.title);
+            const mapsHref = data.mapsUrl || '#';
+            const safeCover = apartment.cover || media[0]?.src || 'https://placehold.co/1200x900/e7e5e4/78716c?text=Polex+Estate';
+
+            article.innerHTML = `
           <button type="button" class="media-open media-thumb relative block aspect-[4/3] w-full overflow-hidden bg-stone-100 text-left">
             <img src="${safeCover}" alt="${hasTitle ? data.title : 'Polex Estate'}" class="h-full w-full object-cover" />
             <span class="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white">${materialsLabel}</span>
@@ -259,182 +324,244 @@
             </div>
             <div class="mt-5 flex gap-3">
               <button type="button" data-card-id="${cardId}" class="desc-toggle inline-flex flex-1 items-center justify-center rounded-full border border-stone-300 px-4 py-3 text-sm font-medium text-stone-800 transition hover:border-stone-400 hover:bg-stone-50">${t('details')}</button>
-              <a href="${apartment.whatsappUrl || '#'}" target="_blank" rel="noreferrer" class="inline-flex flex-1 items-center justify-center rounded-full bg-stone-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-stone-800">${t('whatsapp')}</a>
+              <a href="${apartment.whatsappUrl || '#'}" target="_blank" rel="noreferrer" class="inline-flex flex-1 items-center justify-center rounded-full bg-emerald-500 px-4 py-3 text-sm font-medium text-white transition hover:bg-emerald-600">${t('whatsapp')}</a>
             </div>
             <div class="card-desc" data-desc-id="${cardId}">
               <div class="rounded-3xl bg-stone-50 p-5 text-sm leading-8 text-stone-700 whitespace-pre-line">${data.description}</div>
             </div>
           </div>`;
 
-        article.querySelector('.media-open').addEventListener('click', () => openLightbox(media.length ? media : [{ type: 'image', src: safeCover, alt: hasTitle ? data.title : 'Polex Estate' }], 0));
-        article.querySelector('.desc-toggle').addEventListener('click', (event) => {
-          event.stopPropagation();
-          toggleDescription(cardId, article);
-        });
-        observer.observe(article);
-        return article;
-      }
-
-      function syncDescButtons() {
-        document.querySelectorAll('.desc-toggle').forEach((btn) => {
-          btn.textContent = btn.dataset.cardId === openCardId ? t('hide') : t('details');
-        });
-      }
-
-      function closeDescriptions() {
-        document.querySelectorAll('.card-desc').forEach((block) => {
-          block.classList.remove('is-open');
-          block.style.maxHeight = '0px';
-        });
-        openCardId = null;
-        syncDescButtons();
-      }
-
-      function openDescription(cardId) {
-        document.querySelectorAll('.card-desc').forEach((block) => {
-          const same = block.dataset.descId === cardId;
-          block.classList.toggle('is-open', same);
-          block.style.maxHeight = same ? block.scrollHeight + 'px' : '0px';
-        });
-        openCardId = cardId;
-        syncDescButtons();
-      }
-
-      function toggleDescription(cardId, article) {
-        if (openCardId === cardId) {
-          closeDescriptions();
-          return;
+            article.querySelector('.media-open').addEventListener('click', () => openLightbox(media.length ? media : [{ type: 'image', src: safeCover, alt: hasTitle ? data.title : 'Polex Estate' }], 0));
+            article.querySelector('.desc-toggle').addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleDescription(cardId, article);
+            });
+            observer.observe(article);
+            return article;
         }
-        openDescription(cardId);
-        if (article) {
-          setTimeout(() => {
-            const top = article.getBoundingClientRect().top + window.scrollY - 88;
-            window.scrollTo({ top, behavior: 'smooth' });
-          }, 80);
+
+        function syncDescButtons() {
+            document.querySelectorAll('.desc-toggle').forEach((btn) => {
+                btn.textContent = btn.dataset.cardId === openCardId ? t('hide') : t('details');
+            });
         }
-      }
 
-      function renderGrid() {
-        const visible = apartments.filter((item) => listingType(item) === activeTab);
-        grid.innerHTML = '';
-        closeDescriptions();
-        emptyState.classList.toggle('hidden', visible.length > 0);
-        visible.forEach((apartment, index) => grid.appendChild(createCard(apartment, index)));
-      }
-
-      function setLang(lang) {
-        currentLang = ui[lang] ? lang : 'ru';
-        localStorage.setItem('polexLang', currentLang);
-        const url = new URL(window.location.href);
-        url.searchParams.set('lang', currentLang);
-        window.history.replaceState({}, '', url.toString());
-        updateLangUI();
-        renderGrid();
-      }
-
-      function setTab(tab) {
-        activeTab = tab === 'future' ? 'future' : 'rent';
-        tabButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.tab === activeTab));
-        renderGrid();
-      }
-
-      function renderLightbox() {
-        const item = lightboxItems[lightboxIndex];
-        if (!item) return;
-        stage.innerHTML = '';
-        if (item.type === 'video') {
-          const video = document.createElement('video');
-          video.src = item.src;
-          video.poster = item.poster || '';
-          video.controls = true;
-          video.playsInline = true;
-          video.className = 'max-h-full max-w-full rounded-2xl';
-          stage.appendChild(video);
-        } else {
-          const img = document.createElement('img');
-          img.src = item.src;
-          img.alt = item.alt || '';
-          img.className = 'max-h-full max-w-full rounded-2xl object-contain';
-          stage.appendChild(img);
+        function closeDescriptions() {
+            document.querySelectorAll('.card-desc').forEach((block) => {
+                block.classList.remove('is-open');
+                block.style.maxHeight = '0px';
+            });
+            openCardId = null;
+            syncDescButtons();
         }
-        caption.textContent = item.alt || '';
-        counter.textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
-        thumbs.innerHTML = '';
-        lightboxItems.forEach((thumb, index) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'shrink-0 overflow-hidden rounded-2xl border transition ' + (index === lightboxIndex ? 'border-white/70' : 'border-white/10 opacity-70');
-          button.innerHTML = thumb.type === 'video'
-            ? `<div class="relative h-16 w-24 bg-white/5"><img src="${thumb.poster || ''}" alt="${thumb.alt || t('galleryItem')}" class="h-full w-full object-cover" /><span class="absolute inset-0 flex items-center justify-center text-white">▶</span></div>`
-            : `<img src="${thumb.src}" alt="${thumb.alt || t('galleryItem')}" class="h-16 w-24 object-cover" />`;
-          button.addEventListener('click', () => {
-            lightboxIndex = index;
+
+        function openDescription(cardId) {
+            document.querySelectorAll('.card-desc').forEach((block) => {
+                const same = block.dataset.descId === cardId;
+                block.classList.toggle('is-open', same);
+                block.style.maxHeight = same ? block.scrollHeight + 'px' : '0px';
+            });
+            openCardId = cardId;
+            syncDescButtons();
+        }
+        function toggleDescription(cardId, article) {
+            if (openCardId === cardId) {
+                closeDescriptions();
+                return;
+            }
+
+            openDescription(cardId);
+
+            if (article) {
+                const scrollToCardBottom = () => {
+                    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                    const bottomGap = window.innerWidth < 768 ? 10 : 18;
+                    const articleRect = article.getBoundingClientRect();
+                    const visibleBottom = viewportHeight - bottomGap;
+
+                    if (articleRect.bottom <= visibleBottom) return;
+
+                    const targetTop = window.scrollY + articleRect.bottom - viewportHeight + bottomGap;
+
+                    window.scrollTo({
+                        top: Math.max(0, targetTop),
+                        behavior: 'smooth'
+                    });
+                };
+
+                const desc = article.querySelector(`.card-desc[data-desc-id="${cardId}"]`);
+                if (desc) {
+                    let didScroll = false;
+                    const runScroll = () => {
+                        if (didScroll) return;
+                        didScroll = true;
+                        scrollToCardBottom();
+                    };
+
+                    const onTransitionEnd = (event) => {
+                        if (event.propertyName !== 'max-height') return;
+                        desc.removeEventListener('transitionend', onTransitionEnd);
+                        runScroll();
+                    };
+
+                    desc.addEventListener('transitionend', onTransitionEnd);
+                    setTimeout(() => {
+                        desc.removeEventListener('transitionend', onTransitionEnd);
+                        runScroll();
+                    }, 420);
+                }
+            }
+        }
+
+        function renderGrid() {
+            const visible = apartments.filter((item) => listingType(item) === activeTab);
+            grid.innerHTML = '';
+            closeDescriptions();
+            emptyState.classList.toggle('hidden', visible.length > 0);
+            visible.forEach((apartment, index) => grid.appendChild(createCard(apartment, index)));
+        }
+
+        function setLang(lang) {
+            currentLang = ui[lang] ? lang : 'ru';
+            localStorage.setItem('polexLang', currentLang);
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', url.toString());
+            updateLangUI();
+            renderGrid();
+        }
+
+        function setTab(tab) {
+            activeTab = tab === 'future' ? 'future' : 'rent';
+            tabButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.tab === activeTab));
+            renderGrid();
+        }
+
+        function renderLightbox() {
+            // Очищаем старый плеер, если он был
+            if (activePlyr) {
+                activePlyr.destroy();
+                activePlyr = null;
+            }
+
+            const item = lightboxItems[lightboxIndex];
+            if (!item) return;
+
+            stage.innerHTML = '';
+
+            if (item.type === 'video') {
+                const video = document.createElement('video');
+                video.src = item.src;
+                video.poster = item.poster || '';
+                video.controls = true;
+                video.playsInline = true;
+                video.autoplay = true;
+                stage.appendChild(video);
+
+                activePlyr = new Plyr(video, {
+                    autoplay: true,
+                    controls: [
+                        'play-large',
+                        'progress',
+                        'current-time',
+                        'mute',
+                        'volume',
+                        'fullscreen'
+                    ]
+                });
+            } else {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.alt || '';
+                img.className = 'max-h-full max-w-full rounded-2xl object-contain';
+                stage.appendChild(img);
+            }
+
+            caption.textContent = item.alt || '';
+            counter.textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
+            thumbs.innerHTML = '';
+
+            lightboxItems.forEach((thumb, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'shrink-0 overflow-hidden rounded-2xl border transition ' + (index === lightboxIndex ? 'border-white/70' : 'border-white/10 opacity-70');
+                button.innerHTML = thumb.type === 'video'
+                    ? `<div class="relative h-16 w-24 bg-white/5"><img src="${thumb.poster || ''}" alt="${thumb.alt || t('galleryItem')}" class="h-full w-full object-cover" /><span class="absolute inset-0 flex items-center justify-center text-white">▶</span></div>`
+                    : `<img src="${thumb.src}" alt="${thumb.alt || t('galleryItem')}" class="h-16 w-24 object-cover" />`;
+                button.addEventListener('click', () => {
+                    lightboxIndex = index;
+                    renderLightbox();
+                });
+                thumbs.appendChild(button);
+            });
+        }
+
+        function openLightbox(items, startIndex) {
+            lightboxItems = items;
+            lightboxIndex = startIndex || 0;
             renderLightbox();
-          });
-          thumbs.appendChild(button);
-        });
-      }
-
-      function openLightbox(items, startIndex) {
-        lightboxItems = items;
-        lightboxIndex = startIndex || 0;
-        renderLightbox();
-        lightbox.classList.add('is-open');
-        lightbox.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeLightbox() {
-        lightbox.classList.remove('is-open');
-        lightbox.setAttribute('aria-hidden', 'true');
-        stage.innerHTML = '';
-        thumbs.innerHTML = '';
-        document.body.style.overflow = '';
-      }
-
-      function stepLightbox(delta) {
-        if (!lightboxItems.length) return;
-        lightboxIndex = (lightboxIndex + delta + lightboxItems.length) % lightboxItems.length;
-        renderLightbox();
-      }
-
-      closeBtn.addEventListener('click', closeLightbox);
-      lightboxBackdrop.addEventListener('click', closeLightbox);
-      prevBtn.addEventListener('click', () => stepLightbox(-1));
-      nextBtn.addEventListener('click', () => stepLightbox(1));
-      stage.addEventListener('touchstart', (event) => {
-        touchStartX = event.changedTouches[0].clientX;
-        touchDeltaX = 0;
-      }, { passive: true });
-      stage.addEventListener('touchmove', (event) => {
-        touchDeltaX = event.changedTouches[0].clientX - touchStartX;
-      }, { passive: true });
-      stage.addEventListener('touchend', () => {
-        if (Math.abs(touchDeltaX) > 45) stepLightbox(touchDeltaX > 0 ? -1 : 1);
-      }, { passive: true });
-
-      document.addEventListener('click', (event) => {
-        if (!openCardId) return;
-        const insideCard = event.target.closest('article');
-        if (!insideCard) closeDescriptions();
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (lightbox.classList.contains('is-open')) {
-          if (event.key === 'Escape') closeLightbox();
-          if (event.key === 'ArrowLeft') stepLightbox(-1);
-          if (event.key === 'ArrowRight') stepLightbox(1);
-          return;
+            lightbox.classList.add('is-open');
+            lightbox.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
         }
-        if (event.key === 'Escape' && openCardId) closeDescriptions();
-      });
 
-      langButtons.forEach((btn) => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
-      tabButtons.forEach((btn) => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+        function closeLightbox() {
+            // Очищаем плеер при закрытии
+            if (activePlyr) {
+                activePlyr.destroy();
+                activePlyr = null;
+            }
 
-      updateLangUI();
-      setTab('rent');
+            lightbox.classList.remove('is-open');
+            lightbox.setAttribute('aria-hidden', 'true');
+            stage.innerHTML = '';
+            thumbs.innerHTML = '';
+            document.body.style.overflow = '';
+        }
+
+        function stepLightbox(delta) {
+            if (!lightboxItems.length) return;
+            lightboxIndex = (lightboxIndex + delta + lightboxItems.length) % lightboxItems.length;
+            renderLightbox();
+        }
+
+        closeBtn.addEventListener('click', closeLightbox);
+        lightboxBackdrop.addEventListener('click', closeLightbox);
+        prevBtn.addEventListener('click', () => stepLightbox(-1));
+        nextBtn.addEventListener('click', () => stepLightbox(1));
+        stage.addEventListener('touchstart', (event) => {
+            touchStartX = event.changedTouches[0].clientX;
+            touchDeltaX = 0;
+        }, { passive: true });
+        stage.addEventListener('touchmove', (event) => {
+            touchDeltaX = event.changedTouches[0].clientX - touchStartX;
+        }, { passive: true });
+        stage.addEventListener('touchend', () => {
+            if (Math.abs(touchDeltaX) > 45) stepLightbox(touchDeltaX > 0 ? -1 : 1);
+        }, { passive: true });
+
+        document.addEventListener('click', (event) => {
+            if (!openCardId) return;
+            const insideCard = event.target.closest('article');
+            if (!insideCard) closeDescriptions();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (lightbox.classList.contains('is-open')) {
+                if (event.key === 'Escape') closeLightbox();
+                if (event.key === 'ArrowLeft') stepLightbox(-1);
+                if (event.key === 'ArrowRight') stepLightbox(1);
+                return;
+            }
+            if (event.key === 'Escape' && openCardId) closeDescriptions();
+        });
+
+        langButtons.forEach((btn) => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
+        tabButtons.forEach((btn) => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+
+        updateLangUI();
+        setTab('rent');
     });
-  </script>
+</script>
 </body>
 </html>

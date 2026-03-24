@@ -1,9 +1,17 @@
 window.registerApartment({
   id: 'turin-via-foligno-108',
   listingType: 'rent',
-  whatsappUrl: 'https://wa.me/390000000006',
+  whatsappUrl: 'https://wa.me/393476921026',
   cover: './assets/turin-via-foligno-108/cover.jpg',
-  gallery: [],
+  gallery: [
+    { type: 'image', src: './assets/turin-via-foligno-108/cover.jpg', alt: 'photo' },
+    {
+        type: 'video',
+        src: './assets/turin-via-foligno-108/video.mp4',
+        poster: './assets/turin-via-foligno-108/cover.jpg',
+        alt: 'video'
+    }
+  ],
   i18n: {
     ru: {
       title: 'Аренда квартиры после ремонта в Турине',

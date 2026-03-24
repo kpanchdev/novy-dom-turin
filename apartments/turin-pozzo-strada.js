@@ -1,20 +1,20 @@
 window.registerApartment({
   id: 'turin-pozzo-strada',
   listingType: 'rent',
-  whatsappUrl: 'https://wa.me/390000000006',
-  cover: './assets/turin-pozzo-strada/cover.png',
+  whatsappUrl: 'https://wa.me/393476921026',
+  cover: './assets/turin-pozzo-strada/cover.jpg',
   gallery: [
-      { type: 'image', src: './assets/turin-pozzo-strada/cover.png', alt: 'Фото 1' },
+      { type: 'image', src: './assets/turin-pozzo-strada/cover.png', alt: 'photo' },
       {
           type: 'video',
           src: './assets/turin-pozzo-strada/video.mp4',
           poster: './assets/turin-pozzo-strada/cover.png',
-          alt: 'Видео обзор'
+          alt: 'video'
       }
   ],
   i18n: {
     ru: {
-      title: 'Двушка с балконом',
+      title: 'Метро Pozzo Strada',
       price: '800 € в месяц + коммунальные',
       address: 'Pozzo Strada, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Pozzo+Strada,+Torino',
