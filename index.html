@@ -25,7 +25,12 @@
         body { overflow-x: hidden; }
         .card-shadow { box-shadow: 0 18px 50px rgba(28, 25, 23, .08); }
         .dark .card-shadow { box-shadow: 0 18px 50px rgba(0, 0, 0, .4); }
-        .reveal { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity .7s ease-out, transform .7s ease-out;
+            will-change: opacity, transform;
+        }
         .reveal.is-visible { opacity: 1; transform: translateY(0); }
         .media-thumb img { transition: transform .45s ease; }
         .media-thumb:hover img { transform: scale(1.04); }
@@ -59,7 +64,7 @@
             border-radius: 1rem;
             overflow: hidden;
             --plyr-color-main: #10b981;
-            margin: 0 auto; /* Центрируем, если видео узкое */
+            margin: 0 auto;
         }
 
         #lightboxStage .plyr__video-wrapper {
@@ -72,8 +77,31 @@
             width: auto !important;
             height: auto !important;
             max-width: 100% !important;
-            /* Ограничиваем высоту, чтобы осталось место для счетчика, кнопки закрытия и миниатюр внизу */
             max-height: 75vh !important;
+        }
+
+        @media (max-width: 767px) {
+            #lightbox {
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+
+            #lightboxStage .plyr {
+                max-width: 92vw !important;
+                border-radius: 0.875rem;
+            }
+
+            #lightboxStage .plyr__video-wrapper {
+                max-width: 92vw !important;
+            }
+
+            #lightboxStage .plyr video {
+                max-height: 58vh !important;
+            }
+
+            #lightboxThumbs {
+                margin-top: 12px;
+            }
         }
         #lightboxStage .plyr.plyr--fullscreen,
         #lightboxStage .plyr:fullscreen,
@@ -292,7 +320,10 @@
         let lightboxItems = [];
         let lightboxIndex = 0;
         let touchStartX = 0;
+        let touchStartY = 0;
         let touchDeltaX = 0;
+        let touchDeltaY = 0;
+        let touchStartTime = 0;
 
         // Переменная для хранения активного экземпляра Plyr
         let activePlyr = null;
@@ -304,7 +335,10 @@
                     observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.12 });
+        }, {
+            threshold: 0,
+            rootMargin: '0px 0px -90px 0px'
+        });
 
         function t(key) {
             return ui[currentLang][key] || ui.ru[key] || '';
@@ -523,6 +557,32 @@
                         'fullscreen'
                     ]
                 });
+
+                const togglePlayback = () => {
+                    if (!activePlyr) return;
+                    if (activePlyr.playing) {
+                        activePlyr.pause();
+                    } else {
+                        activePlyr.play();
+                    }
+                };
+
+                video.addEventListener('click', (event) => {
+                    const clickedControl = event.target.closest('.plyr__controls, button, input, a');
+                    if (clickedControl) return;
+                    togglePlayback();
+                });
+
+                video.addEventListener('touchend', (event) => {
+                    if (!event.cancelable) return;
+                    if (Math.abs(touchDeltaX) > 12 || Math.abs(touchDeltaY) > 12) return;
+
+                    const tapDuration = Date.now() - touchStartTime;
+                    if (tapDuration > 280) return;
+
+                    event.preventDefault();
+                    togglePlayback();
+                }, { passive: false });
             } else {
                 const img = document.createElement('img');
                 img.src = item.src;
@@ -585,13 +645,19 @@
         nextBtn.addEventListener('click', () => stepLightbox(1));
         stage.addEventListener('touchstart', (event) => {
             touchStartX = event.changedTouches[0].clientX;
+            touchStartY = event.changedTouches[0].clientY;
             touchDeltaX = 0;
+            touchDeltaY = 0;
+            touchStartTime = Date.now();
         }, { passive: true });
         stage.addEventListener('touchmove', (event) => {
             touchDeltaX = event.changedTouches[0].clientX - touchStartX;
+            touchDeltaY = event.changedTouches[0].clientY - touchStartY;
         }, { passive: true });
         stage.addEventListener('touchend', () => {
-            if (Math.abs(touchDeltaX) > 45) stepLightbox(touchDeltaX > 0 ? -1 : 1);
+            if (Math.abs(touchDeltaX) > 45 && Math.abs(touchDeltaY) < 30) {
+                stepLightbox(touchDeltaX > 0 ? -1 : 1);
+            }
         }, { passive: true });
 
         document.addEventListener('click', (event) => {
