@@ -27,11 +27,14 @@
         .dark .card-shadow { box-shadow: 0 18px 50px rgba(0, 0, 0, .4); }
         .reveal {
             opacity: 0;
-            transform: translateY(24px);
-            transition: opacity .7s ease-out, transform .7s ease-out;
+            transform: translateY(26px);
+            transition: opacity .72s ease-out, transform .72s ease-out;
             will-change: opacity, transform;
         }
-        .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
         .media-thumb img { transition: transform .45s ease; }
         .media-thumb:hover img { transform: scale(1.04); }
         .card-desc {
@@ -336,8 +339,8 @@
                 }
             });
         }, {
-            threshold: 0,
-            rootMargin: '0px 0px -90px 0px'
+            threshold: 0.12,
+            rootMargin: '0px 0px -40px 0px'
         });
 
         function t(key) {
@@ -386,6 +389,7 @@
             const article = document.createElement('article');
             article.className = 'reveal self-start overflow-hidden rounded-[2rem] border border-stone-200/80 bg-white transition-colors duration-300 dark:border-stone-800 dark:bg-stone-900 card-shadow';
             const cardId = apartment.id || `apartment-${index}`;
+            article.style.transitionDelay = `${Math.min(index, 5) * 70}ms`;
             const media = mediaItems(apartment);
             const materialsLabel = `${media.length || 1} ${t('materials')}`;
             const hasPrice = Boolean(data.price);
@@ -546,16 +550,14 @@
                 video.autoplay = true;
                 stage.appendChild(video);
 
+                const isPhone = window.matchMedia('(max-width: 767px) and (pointer: coarse)').matches;
+
                 activePlyr = new Plyr(video, {
                     autoplay: true,
-                    controls: [
-                        'play-large',
-                        'progress',
-                        'current-time',
-                        'mute',
-                        'volume',
-                        'fullscreen'
-                    ]
+                    clickToPlay: false,
+                    controls: isPhone
+                        ? ['play-large', 'progress', 'current-time', 'mute', 'fullscreen']
+                        : ['play-large', 'progress', 'current-time', 'mute', 'volume', 'fullscreen']
                 });
 
                 const togglePlayback = () => {
@@ -567,22 +569,28 @@
                     }
                 };
 
-                video.addEventListener('click', (event) => {
-                    const clickedControl = event.target.closest('.plyr__controls, button, input, a');
-                    if (clickedControl) return;
-                    togglePlayback();
-                });
+                const bindPlyrTapToggle = () => {
+                    const plyrRoot = stage.querySelector('.plyr');
+                    const videoArea = stage.querySelector('.plyr__video-wrapper') || plyrRoot;
+                    if (!videoArea) return;
 
-                video.addEventListener('touchend', (event) => {
-                    if (!event.cancelable) return;
-                    if (Math.abs(touchDeltaX) > 12 || Math.abs(touchDeltaY) > 12) return;
+                    const onTapToggle = (event) => {
+                        if (event.target.closest('.plyr__controls, button, input, a')) return;
+                        if (Math.abs(touchDeltaX) > 12 || Math.abs(touchDeltaY) > 12) return;
 
-                    const tapDuration = Date.now() - touchStartTime;
-                    if (tapDuration > 280) return;
+                        const tapDuration = Date.now() - touchStartTime;
+                        if (event.type === 'touchend' && tapDuration > 280) return;
 
-                    event.preventDefault();
-                    togglePlayback();
-                }, { passive: false });
+                        event.preventDefault();
+                        event.stopPropagation();
+                        togglePlayback();
+                    };
+
+                    videoArea.addEventListener('click', onTapToggle);
+                    videoArea.addEventListener('touchend', onTapToggle, { passive: false });
+                };
+
+                requestAnimationFrame(bindPlyrTapToggle);
             } else {
                 const img = document.createElement('img');
                 img.src = item.src;
