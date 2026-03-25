@@ -395,6 +395,31 @@
         let startX = 0;
         let startY = 0;
         let lastTap = 0;
+        let pinchStartDistance = 0;
+        let pinchStartScale = 1;
+        let zoomCleanup = null;
+
+        function getDistance(touchA, touchB) {
+            return Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
+        }
+
+        function clampTranslate(wrapper, content) {
+            if (!wrapper || !content || scale <= 1) {
+                translateX = 0;
+                translateY = 0;
+                return;
+            }
+
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const contentRect = content.getBoundingClientRect();
+            const scaledWidth = contentRect.width * scale;
+            const scaledHeight = contentRect.height * scale;
+            const maxX = Math.max(0, (scaledWidth - wrapperRect.width) / 2);
+            const maxY = Math.max(0, (scaledHeight - wrapperRect.height) / 2);
+
+            translateX = Math.min(maxX, Math.max(-maxX, translateX));
+            translateY = Math.min(maxY, Math.max(-maxY, translateY));
+        }
 
         function resetZoom() {
             scale = 1;
@@ -403,10 +428,12 @@
             updateTransform();
         }
 
-        function updateTransform() {
-            const content = document.getElementById('zoomContent');
-            if (content) {
-                content.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        function updateTransform(wrapper = null, content = null) {
+            const target = content || document.getElementById('zoomContent');
+            const targetWrapper = wrapper || target?.parentElement;
+            if (target) {
+                clampTranslate(targetWrapper, target);
+                target.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
             }
         }
 
@@ -702,18 +729,33 @@
         }
 
         function setupZoomEvents(wrapper, content) {
-            wrapper.onwheel = (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.2 : 0.2;
+            if (zoomCleanup) {
+                zoomCleanup();
+                zoomCleanup = null;
+            }
+
+            const zoomBy = (delta) => {
                 scale = Math.min(Math.max(1, scale + delta), 5);
                 if (scale === 1) {
                     translateX = 0;
                     translateY = 0;
                 }
-                updateTransform();
+                updateTransform(wrapper, content);
+            };
+
+            const onWheel = (e) => {
+                e.preventDefault();
+                zoomBy(e.deltaY > 0 ? -0.2 : 0.2);
             };
 
             const startDrag = (e) => {
+                if (e.touches && e.touches.length === 2) {
+                    pinchStartDistance = getDistance(e.touches[0], e.touches[1]);
+                    pinchStartScale = scale;
+                    isDragging = false;
+                    return;
+                }
+
                 if (scale <= 1) return;
                 isDragging = true;
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -723,18 +765,47 @@
             };
 
             const moveDrag = (e) => {
+                if (e.touches && e.touches.length === 2) {
+                    e.preventDefault();
+                    const nextDistance = getDistance(e.touches[0], e.touches[1]);
+                    if (pinchStartDistance > 0) {
+                        scale = Math.min(Math.max(1, pinchStartScale * (nextDistance / pinchStartDistance)), 5);
+                        if (scale === 1) {
+                            translateX = 0;
+                            translateY = 0;
+                        }
+                        updateTransform(wrapper, content);
+                    }
+                    return;
+                }
+
                 if (!isDragging) return;
+                if (e.touches) e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 translateX = clientX - startX;
                 translateY = clientY - startY;
-                updateTransform();
+                updateTransform(wrapper, content);
             };
 
             const endDrag = () => {
                 isDragging = false;
+                pinchStartDistance = 0;
             };
 
+            const handleTap = () => {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    if (scale > 1) resetZoom();
+                    else {
+                        scale = 2.5;
+                        updateTransform(wrapper, content);
+                    }
+                }
+                lastTap = now;
+            };
+
+            wrapper.addEventListener('wheel', onWheel, { passive: false });
             wrapper.addEventListener('mousedown', startDrag);
             window.addEventListener('mousemove', moveDrag);
             window.addEventListener('mouseup', endDrag);
@@ -742,18 +813,20 @@
             wrapper.addEventListener('touchstart', startDrag, { passive: false });
             wrapper.addEventListener('touchmove', moveDrag, { passive: false });
             wrapper.addEventListener('touchend', endDrag);
+            wrapper.addEventListener('touchcancel', endDrag);
+            wrapper.addEventListener('click', handleTap);
 
-            wrapper.addEventListener('click', () => {
-                const now = Date.now();
-                if (now - lastTap < 300) {
-                    if (scale > 1) resetZoom();
-                    else {
-                        scale = 2.5;
-                        updateTransform();
-                    }
-                }
-                lastTap = now;
-            });
+            zoomCleanup = () => {
+                wrapper.removeEventListener('wheel', onWheel);
+                wrapper.removeEventListener('mousedown', startDrag);
+                window.removeEventListener('mousemove', moveDrag);
+                window.removeEventListener('mouseup', endDrag);
+                wrapper.removeEventListener('touchstart', startDrag);
+                wrapper.removeEventListener('touchmove', moveDrag);
+                wrapper.removeEventListener('touchend', endDrag);
+                wrapper.removeEventListener('touchcancel', endDrag);
+                wrapper.removeEventListener('click', handleTap);
+            };
         }
 
         function openLightbox(items, startIndex) {
@@ -769,6 +842,10 @@
             if (activePlyr) {
                 activePlyr.destroy();
                 activePlyr = null;
+            }
+            if (zoomCleanup) {
+                zoomCleanup();
+                zoomCleanup = null;
             }
 
             lightbox.classList.remove('is-open');
