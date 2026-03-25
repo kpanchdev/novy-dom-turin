@@ -4,11 +4,11 @@ window.registerApartment({
   whatsappUrl: 'https://wa.me/393476921026',
   cover: './assets/turin-pozzo-strada/cover.jpg',
   gallery: [
-      { type: 'image', src: './assets/turin-pozzo-strada/cover.png', alt: 'photo' },
+      { type: 'image', src: './assets/turin-pozzo-strada/cover.jpg', alt: 'photo' },
       {
           type: 'video',
           src: './assets/turin-pozzo-strada/video.mp4',
-          poster: './assets/turin-pozzo-strada/cover.png',
+          poster: './assets/turin-pozzo-strada/cover.jpg',
           alt: 'video'
       }
   ],
