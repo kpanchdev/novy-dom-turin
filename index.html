@@ -42,7 +42,7 @@
             margin-top: 0;
         }
         .card-desc.is-open { opacity: 1; margin-top: 1rem; }
-        .lightbox { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+        .lightbox { opacity: 0; pointer-events: none; transition: opacity .18s ease; height: 100dvh; min-height: 100dvh; }
         .lightbox.is-open { opacity: 1; pointer-events: auto; }
         .lang-btn.is-active,
         .tab-btn.is-active {
@@ -96,25 +96,36 @@
 
         /* Стили для корректного отображения Plyr в лайтбоксе */
         #lightboxStage .plyr {
-            width: fit-content !important;
-            max-width: 100%;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
             border-radius: 1rem;
             overflow: hidden;
             --plyr-color-main: #10b981;
             margin: 0 auto;
+            align-self: center;
         }
 
         #lightboxStage .plyr__video-wrapper {
-            width: fit-content !important;
-            max-width: 100%;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+
+        #lightboxStage {
+            align-self: stretch;
+            overscroll-behavior: contain;
+            touch-action: pan-y pinch-zoom;
         }
 
         #lightboxStage .plyr video {
             display: block;
-            width: auto !important;
-            height: auto !important;
+            width: 100% !important;
+            height: 100% !important;
             max-width: 100% !important;
-            max-height: 100% !important; /* Для мобильных ограничиваем строго 100% контейнера */
+            max-height: 100% !important;
             object-fit: contain !important;
         }
 
@@ -122,6 +133,13 @@
         @media (min-width: 640px) {
             #lightboxStage .plyr video {
                 max-height: 75vh !important;
+            }
+        }
+
+        @media (max-width: 639px) {
+            #lightboxStage .plyr,
+            #lightboxStage .plyr__video-wrapper {
+                width: 100% !important;
             }
         }
 
@@ -220,10 +238,10 @@
     <div id="apartmentsGrid" class="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3"></div>
 </main>
 
-<div id="lightbox" class="lightbox fixed inset-0 z-50 bg-black/95 px-3 py-4 sm:px-6 sm:py-6" aria-hidden="true">
+<div id="lightbox" class="lightbox fixed inset-0 z-50 bg-black/95 px-2 py-2 sm:px-4 sm:py-3" aria-hidden="true">
     <div id="lightboxBackdrop" class="absolute inset-0"></div>
-    <div class="relative mx-auto flex h-full max-w-6xl flex-col">
-        <div class="mb-3 flex items-center justify-between gap-3 text-white">
+    <div class="relative mx-auto flex h-full max-w-7xl flex-col overflow-hidden">
+        <div class="mb-2 shrink-0 flex items-center justify-between gap-3 text-white">
             <div class="min-w-0">
                 <div id="lightboxCounter" class="text-sm font-medium text-white/75"></div>
                 <div id="lightboxCaption" class="truncate text-base font-medium"></div>
@@ -232,18 +250,18 @@
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </button>
         </div>
-        <div class="relative flex min-h-0 flex-1 items-center justify-center">
-            <button id="lightboxPrev" type="button" class="absolute left-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:left-3" aria-label="Previous">
+        <div class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+            <button id="lightboxPrev" type="button" class="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:inline-flex sm:left-3" aria-label="Previous">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
             <div id="lightboxStage" class="relative flex h-full w-full min-h-0 items-center justify-center overflow-hidden">
                 <!-- Сюда вставляется картинка или видео -->
             </div>
-            <button id="lightboxNext" type="button" class="absolute right-0 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:right-3" aria-label="Next">
+            <button id="lightboxNext" type="button" class="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:inline-flex sm:right-3" aria-label="Next">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
             </button>
         </div>
-        <div id="lightboxThumbs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
+        <div id="lightboxThumbs" class="mt-2 shrink-0 flex gap-2 overflow-x-auto pb-1"></div>
     </div>
 </div>
 
@@ -405,6 +423,86 @@
         let pinchStartScale = 1;
         let pinchLastCenter = null;
         let zoomCleanup = null;
+
+        let lightboxViewportRaf = 0;
+        let bodyScrollTop = 0;
+
+        function lockBodyScroll() {
+            bodyScrollTop = window.scrollY || window.pageYOffset || 0;
+            document.body.dataset.lightboxScrollTop = String(bodyScrollTop);
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${bodyScrollTop}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+            document.documentElement.style.overscrollBehavior = "none";
+            lightbox.style.overscrollBehavior = "contain";
+        }
+
+        function unlockBodyScroll() {
+            const savedTop = parseInt(document.body.dataset.lightboxScrollTop || "0", 10) || 0;
+            document.body.style.position = "";
+            document.body.style.top = "";
+            document.body.style.left = "";
+            document.body.style.right = "";
+            document.body.style.width = "";
+            document.body.style.overflow = "";
+            document.documentElement.style.overflow = "";
+            document.documentElement.style.overscrollBehavior = "";
+            lightbox.style.overscrollBehavior = "";
+            delete document.body.dataset.lightboxScrollTop;
+            window.scrollTo(0, savedTop);
+        }
+
+        function updateLightboxViewport(forceRender = false) {
+            const viewportHeight = Math.round(window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 0);
+            if (viewportHeight > 0) {
+                document.documentElement.style.setProperty('--lightbox-vh', `${viewportHeight}px`);
+                lightbox.style.height = `${viewportHeight}px`;
+                lightbox.style.minHeight = `${viewportHeight}px`;
+                const shell = lightbox.querySelector(':scope > .relative');
+                if (shell) {
+                    const styles = getComputedStyle(lightbox);
+                    const paddingTop = parseFloat(styles.paddingTop) || 0;
+                    const paddingBottom = parseFloat(styles.paddingBottom) || 0;
+                    shell.style.height = `${Math.max(0, viewportHeight - paddingTop - paddingBottom)}px`;
+                    shell.style.maxHeight = `${Math.max(0, viewportHeight - paddingTop - paddingBottom)}px`;
+                }
+            }
+
+            if (!lightbox.classList.contains('is-open')) return;
+
+            if (forceRender && lightboxItems[lightboxIndex]) {
+                const currentType = lightboxItems[lightboxIndex].type;
+                if (currentType === 'video') {
+                    renderLightbox();
+                    return;
+                }
+            }
+
+            const zoomWrapper = document.getElementById('zoomWrapper');
+            const zoomContent = document.getElementById('zoomContent');
+            if (zoomWrapper && zoomContent) {
+                fitZoomContent(zoomWrapper, zoomContent);
+                updateTransform(zoomWrapper, zoomContent);
+            }
+
+            if (activePlyr) {
+                try {
+                    activePlyr.fullscreen?.update?.();
+                } catch (e) {}
+            }
+        }
+
+        function scheduleLightboxViewportUpdate(forceRender = false) {
+            if (lightboxViewportRaf) cancelAnimationFrame(lightboxViewportRaf);
+            lightboxViewportRaf = requestAnimationFrame(() => {
+                lightboxViewportRaf = 0;
+                updateLightboxViewport(forceRender);
+            });
+        }
 
         function getDistance(touchA, touchB) {
             return Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
@@ -740,6 +838,7 @@
                 stage.appendChild(video);
 
                 const isMobile = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
+                stage.style.touchAction = 'pan-y';
 
                 activePlyr = new Plyr(video, {
                     autoplay: true,
@@ -768,6 +867,7 @@
                 content.appendChild(img);
                 wrapper.appendChild(content);
                 stage.appendChild(wrapper);
+                stage.style.touchAction = 'none';
 
                 setupZoomEvents(wrapper, content);
             }
@@ -914,10 +1014,12 @@
         function openLightbox(items, startIndex) {
             lightboxItems = items;
             lightboxIndex = startIndex || 0;
+            updateLightboxViewport(false);
             renderLightbox();
             lightbox.classList.add('is-open');
             lightbox.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
+            lockBodyScroll();
+            scheduleLightboxViewportUpdate(true);
         }
 
         function closeLightbox() {
@@ -929,12 +1031,16 @@
                 zoomCleanup();
                 zoomCleanup = null;
             }
+            if (lightboxViewportRaf) {
+                cancelAnimationFrame(lightboxViewportRaf);
+                lightboxViewportRaf = 0;
+            }
 
             lightbox.classList.remove('is-open');
             lightbox.setAttribute('aria-hidden', 'true');
             stage.innerHTML = '';
             thumbs.innerHTML = '';
-            document.body.style.overflow = '';
+            unlockBodyScroll();
         }
 
         function stepLightbox(delta) {
@@ -958,6 +1064,13 @@
             if (Math.abs(dX) > 60) stepLightbox(dX > 0 ? -1 : 1);
         }, { passive: true });
 
+        lightbox.addEventListener('touchmove', (event) => {
+            if (!lightbox.classList.contains('is-open')) return;
+            const scrollable = event.target.closest('#lightboxThumbs');
+            if (scrollable) return;
+            if (event.cancelable) event.preventDefault();
+        }, { passive: false });
+
         document.addEventListener('click', (event) => {
             if (!openCardId) return;
             const insideCard = event.target.closest('article');
@@ -973,6 +1086,18 @@
             }
             if (event.key === 'Escape' && openCardId) closeDescriptions();
         });
+
+
+        window.addEventListener('resize', () => scheduleLightboxViewportUpdate(true), { passive: true });
+        window.addEventListener('orientationchange', () => {
+            scheduleLightboxViewportUpdate(true);
+            setTimeout(() => scheduleLightboxViewportUpdate(true), 180);
+            setTimeout(() => scheduleLightboxViewportUpdate(true), 420);
+        });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => scheduleLightboxViewportUpdate(true), { passive: true });
+        }
+        updateLightboxViewport(false);
 
         langButtons.forEach((btn) => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
         tabButtons.forEach((btn) => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
