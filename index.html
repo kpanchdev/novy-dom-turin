@@ -71,21 +71,27 @@
         #zoomContent {
             transition: transform 0.1s ease-out;
             cursor: grab;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100%;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            flex: 0 0 auto;
+            will-change: transform;
         }
 
         #zoomContent:active { cursor: grabbing; }
 
         #zoomContent img {
-            max-width: 100%;
-            max-height: 100%;
+            display: block;
+            width: 100%;
+            height: 100%;
             object-fit: contain;
             user-select: none;
             -webkit-user-drag: none;
+            touch-action: none;
         }
 
         /* Стили для корректного отображения Plyr в лайтбоксе */
@@ -397,10 +403,35 @@
         let lastTap = 0;
         let pinchStartDistance = 0;
         let pinchStartScale = 1;
+        let pinchLastCenter = null;
         let zoomCleanup = null;
 
         function getDistance(touchA, touchB) {
             return Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
+        }
+
+        function getTouchCenter(touchA, touchB) {
+            return {
+                x: (touchA.clientX + touchB.clientX) / 2,
+                y: (touchA.clientY + touchB.clientY) / 2
+            };
+        }
+
+        function fitZoomContent(wrapper, content) {
+            if (!wrapper || !content) return;
+            const img = content.querySelector('img');
+            if (!img) return;
+
+            const wrapperWidth = wrapper.clientWidth || wrapper.getBoundingClientRect().width;
+            const wrapperHeight = wrapper.clientHeight || wrapper.getBoundingClientRect().height;
+            const naturalWidth = img.naturalWidth || wrapperWidth || 1;
+            const naturalHeight = img.naturalHeight || wrapperHeight || 1;
+            const ratio = Math.min(wrapperWidth / naturalWidth, wrapperHeight / naturalHeight, 1);
+            const fittedWidth = Math.max(1, naturalWidth * ratio);
+            const fittedHeight = Math.max(1, naturalHeight * ratio);
+
+            content.style.width = `${fittedWidth}px`;
+            content.style.height = `${fittedHeight}px`;
         }
 
         function clampTranslate(wrapper, content) {
@@ -410,15 +441,47 @@
                 return;
             }
 
-            const wrapperRect = wrapper.getBoundingClientRect();
-            const contentRect = content.getBoundingClientRect();
-            const scaledWidth = contentRect.width * scale;
-            const scaledHeight = contentRect.height * scale;
-            const maxX = Math.max(0, (scaledWidth - wrapperRect.width) / 2);
-            const maxY = Math.max(0, (scaledHeight - wrapperRect.height) / 2);
+            const wrapperWidth = wrapper.clientWidth || wrapper.getBoundingClientRect().width;
+            const wrapperHeight = wrapper.clientHeight || wrapper.getBoundingClientRect().height;
+            const baseWidth = content.offsetWidth || content.getBoundingClientRect().width / Math.max(scale, 1);
+            const baseHeight = content.offsetHeight || content.getBoundingClientRect().height / Math.max(scale, 1);
+            const scaledWidth = baseWidth * scale;
+            const scaledHeight = baseHeight * scale;
+            const maxX = Math.max(0, (scaledWidth - wrapperWidth) / 2);
+            const maxY = Math.max(0, (scaledHeight - wrapperHeight) / 2);
 
             translateX = Math.min(maxX, Math.max(-maxX, translateX));
             translateY = Math.min(maxY, Math.max(-maxY, translateY));
+        }
+
+        function zoomToPoint(nextScale, clientX, clientY, wrapper, content) {
+            const targetScale = Math.min(Math.max(1, nextScale), 5);
+            if (!wrapper || !content) {
+                scale = targetScale;
+                if (scale === 1) {
+                    translateX = 0;
+                    translateY = 0;
+                }
+                updateTransform(wrapper, content);
+                return;
+            }
+
+            const previousScale = scale || 1;
+            const rect = wrapper.getBoundingClientRect();
+            const pointX = clientX - (rect.left + rect.width / 2);
+            const pointY = clientY - (rect.top + rect.height / 2);
+            const ratio = targetScale / previousScale;
+
+            translateX = (1 - ratio) * pointX + ratio * translateX;
+            translateY = (1 - ratio) * pointY + ratio * translateY;
+            scale = targetScale;
+
+            if (scale === 1) {
+                translateX = 0;
+                translateY = 0;
+            }
+
+            updateTransform(wrapper, content);
         }
 
         function resetZoom() {
@@ -734,24 +797,27 @@
                 zoomCleanup = null;
             }
 
-            const zoomBy = (delta) => {
-                scale = Math.min(Math.max(1, scale + delta), 5);
-                if (scale === 1) {
-                    translateX = 0;
-                    translateY = 0;
-                }
+            const img = content.querySelector('img');
+            const syncContentSize = () => {
+                fitZoomContent(wrapper, content);
                 updateTransform(wrapper, content);
+            };
+
+            const zoomBy = (delta, clientX, clientY) => {
+                const nextScale = Math.min(Math.max(1, scale + delta), 5);
+                zoomToPoint(nextScale, clientX, clientY, wrapper, content);
             };
 
             const onWheel = (e) => {
                 e.preventDefault();
-                zoomBy(e.deltaY > 0 ? -0.2 : 0.2);
+                zoomBy(e.deltaY > 0 ? -0.2 : 0.2, e.clientX, e.clientY);
             };
 
             const startDrag = (e) => {
                 if (e.touches && e.touches.length === 2) {
                     pinchStartDistance = getDistance(e.touches[0], e.touches[1]);
                     pinchStartScale = scale;
+                    pinchLastCenter = getTouchCenter(e.touches[0], e.touches[1]);
                     isDragging = false;
                     return;
                 }
@@ -768,14 +834,22 @@
                 if (e.touches && e.touches.length === 2) {
                     e.preventDefault();
                     const nextDistance = getDistance(e.touches[0], e.touches[1]);
+                    const center = getTouchCenter(e.touches[0], e.touches[1]);
+
+                    if (pinchLastCenter) {
+                        translateX += center.x - pinchLastCenter.x;
+                        translateY += center.y - pinchLastCenter.y;
+                    }
+
                     if (pinchStartDistance > 0) {
-                        scale = Math.min(Math.max(1, pinchStartScale * (nextDistance / pinchStartDistance)), 5);
-                        if (scale === 1) {
-                            translateX = 0;
-                            translateY = 0;
-                        }
+                        const scaleFactor = nextDistance / pinchStartDistance;
+                        const nextScale = Math.min(Math.max(1, pinchStartScale * scaleFactor), 5);
+                        zoomToPoint(nextScale, center.x, center.y, wrapper, content);
+                    } else {
                         updateTransform(wrapper, content);
                     }
+
+                    pinchLastCenter = center;
                     return;
                 }
 
@@ -791,19 +865,25 @@
             const endDrag = () => {
                 isDragging = false;
                 pinchStartDistance = 0;
+                pinchStartScale = scale;
+                pinchLastCenter = null;
             };
 
-            const handleTap = () => {
+            const handleTap = (e) => {
                 const now = Date.now();
                 if (now - lastTap < 300) {
                     if (scale > 1) resetZoom();
                     else {
-                        scale = 2.5;
-                        updateTransform(wrapper, content);
+                        zoomToPoint(2.5, e.clientX, e.clientY, wrapper, content);
                     }
                 }
                 lastTap = now;
             };
+
+            if (img) {
+                if (img.complete) syncContentSize();
+                else img.addEventListener('load', syncContentSize, { once: true });
+            }
 
             wrapper.addEventListener('wheel', onWheel, { passive: false });
             wrapper.addEventListener('mousedown', startDrag);
@@ -815,6 +895,7 @@
             wrapper.addEventListener('touchend', endDrag);
             wrapper.addEventListener('touchcancel', endDrag);
             wrapper.addEventListener('click', handleTap);
+            window.addEventListener('resize', syncContentSize);
 
             zoomCleanup = () => {
                 wrapper.removeEventListener('wheel', onWheel);
@@ -826,6 +907,7 @@
                 wrapper.removeEventListener('touchend', endDrag);
                 wrapper.removeEventListener('touchcancel', endDrag);
                 wrapper.removeEventListener('click', handleTap);
+                window.removeEventListener('resize', syncContentSize);
             };
         }
 
