@@ -19,7 +19,8 @@
         }
     </script>
 
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <!-- Подключаем стили Fancybox -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
 
     <style>
         .card-shadow { box-shadow: 0 18px 50px rgba(28, 25, 23, .08); }
@@ -42,8 +43,6 @@
             margin-top: 0;
         }
         .card-desc.is-open { opacity: 1; margin-top: 1rem; }
-        .lightbox { opacity: 0; pointer-events: none; transition: opacity .18s ease; }
-        .lightbox.is-open { opacity: 1; pointer-events: auto; }
         .lang-btn.is-active,
         .tab-btn.is-active {
             background: #1c1917 !important;
@@ -57,107 +56,32 @@
             box-shadow: 0 2px 10px rgba(0,0,0,.3) !important;
         }
 
-
-        /* Контейнер для зума */
-        #zoomWrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            touch-action: none;
+        /* Кастомизация Fancybox под темную/светлую тему */
+        .fancybox__container {
+            --fancybox-bg: rgba(0, 0, 0, 0.95);
+            --fancybox-color: #fff;
         }
 
-        #zoomContent {
-            transition: transform 0.1s ease-out;
-            cursor: grab;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            max-height: 100%;
-            flex: 0 0 auto;
-            will-change: transform;
+        /* Корректное отображение вертикальных видео в Fancybox */
+        .fancybox__container .fancybox__content:has(video),
+        .fancybox__container .fancybox__content:has(iframe) {
+            width: auto !important;
+            height: auto !important;
+            max-width: min(92vw, 520px) !important;
+            max-height: 92vh !important;
+            padding: 0 !important;
+            background: transparent !important;
         }
-
-        #zoomContent:active { cursor: grabbing; }
-
-        #zoomContent img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            user-select: none;
-            -webkit-user-drag: none;
-            touch-action: none;
-        }
-
-        /* Стили для корректного отображения Plyr в лайтбоксе */
-        #lightboxStage .plyr {
-            width: fit-content !important;
-            max-width: 100%;
-            border-radius: 1rem;
-            overflow: hidden;
-            --plyr-color-main: #10b981;
-            margin: 0 auto;
-        }
-
-        #lightboxStage .plyr__video-wrapper {
-            width: fit-content !important;
-            max-width: 100%;
-        }
-
-        #lightboxStage .plyr video {
-            display: block;
+        .fancybox__container .f-html5video,
+        .fancybox__container .f-video,
+        .fancybox__container video,
+        .fancybox__container iframe {
             width: auto !important;
             height: auto !important;
             max-width: 100% !important;
-            max-height: 100% !important; /* Для мобильных ограничиваем строго 100% контейнера */
+            max-height: 92vh !important;
+            aspect-ratio: auto !important;
             object-fit: contain !important;
-        }
-
-        /* Возвращаем оригинальный размер 75vh для десктопов */
-        @media (min-width: 640px) {
-            #lightboxStage .plyr video {
-                max-height: 75vh !important;
-            }
-        }
-
-        #lightboxStage .plyr.plyr--fullscreen,
-        #lightboxStage .plyr:fullscreen,
-        :fullscreen {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: none !important;
-            max-height: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 0 !important;
-        }
-
-        #lightboxStage .plyr.plyr--fullscreen .plyr__video-wrapper,
-        #lightboxStage .plyr:fullscreen .plyr__video-wrapper,
-        :fullscreen .plyr__video-wrapper {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: none !important;
-            max-height: none !important;
-        }
-
-        #lightboxStage .plyr.plyr--fullscreen video,
-        #lightboxStage .plyr:fullscreen video,
-        video:fullscreen,
-        #lightboxStage .plyr.plyr--fullscreen .plyr__video-wrapper video,
-        :fullscreen .plyr__video-wrapper video {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: none !important;
-            max-height: none !important;
-            object-fit: contain !important;
-            border-radius: 0 !important;
         }
     </style>
 </head>
@@ -165,7 +89,7 @@
 <header class="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur transition-colors duration-300 dark:border-stone-800 dark:bg-stone-950/90">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div class="flex min-w-0 items-center gap-3">
-            <img src="./assets/polex-estate-logo.png" alt="Polex Estate" class="h-12 w-12 rounded-2xl border border-stone-200 object-cover sm:h-14 sm:w-14 dark:border-stone-700" />
+            <img src="./assets/polex-estate-logo.png" alt="Polex Estate" class="h-12 w-12 rounded-2xl border border-stone-200 object-cover sm:h-14 sm:w-14 dark:border-stone-700" onerror="this.src='https://placehold.co/100x100/e7e5e4/78716c?text=PE'" />
             <div class="min-w-0">
                 <div class="truncate text-lg font-semibold tracking-tight text-stone-900 sm:text-xl dark:text-white">Polex Estate</div>
                 <div id="brandSubtitle" class="truncate text-sm text-stone-500 dark:text-stone-400"></div>
@@ -221,32 +145,8 @@
     <div id="apartmentsGrid" class="grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-3"></div>
 </main>
 
-<div id="lightbox" class="lightbox fixed inset-0 z-50 bg-black/95 px-3 py-4 sm:px-6 sm:py-6" aria-hidden="true">
-    <div id="lightboxBackdrop" class="absolute inset-0"></div>
-    <div class="relative mx-auto flex h-full max-w-6xl flex-col">
-        <div class="mb-3 flex items-center justify-between gap-3 text-white">
-            <div class="min-w-0">
-                <div id="lightboxCounter" class="text-sm font-medium text-white/75"></div>
-                <div id="lightboxCaption" class="truncate text-base font-medium"></div>
-            </div>
-            <button id="lightboxClose" type="button" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10" aria-label="Close gallery">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-            </button>
-        </div>
-        <div class="relative flex min-h-0 flex-1 items-center justify-center">
-            <button id="lightboxPrev" type="button" class="absolute left-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:inline-flex sm:left-3" aria-label="Previous">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div id="lightboxStage" class="relative flex h-full w-full min-h-0 items-center justify-center py-4 sm:p-0"></div>
-            <button id="lightboxNext" type="button" class="absolute right-0 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white transition hover:bg-white/10 sm:inline-flex sm:right-3" aria-label="Next">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-            </button>
-        </div>
-        <div id="lightboxThumbs" class="mt-4 flex gap-2 overflow-x-auto pb-1"></div>
-    </div>
-</div>
-
-<script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+<!-- Подключаем скрипт Fancybox -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
 
 <script>
     window.__APARTMENTS = [];
@@ -302,7 +202,6 @@
         const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
         const brandSubtitle = document.getElementById('brandSubtitle');
 
-        // Элементы мобильного выпадающего списка
         const mobileLangToggle = document.getElementById('mobileLangToggle');
         const mobileLangDropdown = document.getElementById('mobileLangDropdown');
         const mobileLangCurrent = document.getElementById('mobileLangCurrent');
@@ -379,128 +278,6 @@
         let activeTab = 'rent';
         let openCardId = null;
 
-        const lightbox = document.getElementById('lightbox');
-        const lightboxBackdrop = document.getElementById('lightboxBackdrop');
-        const stage = document.getElementById('lightboxStage');
-        const caption = document.getElementById('lightboxCaption');
-        const counter = document.getElementById('lightboxCounter');
-        const thumbs = document.getElementById('lightboxThumbs');
-        const closeBtn = document.getElementById('lightboxClose');
-        const prevBtn = document.getElementById('lightboxPrev');
-        const nextBtn = document.getElementById('lightboxNext');
-        let lightboxItems = [];
-        let lightboxIndex = 0;
-        let touchStartX = 0;
-        let touchDeltaX = 0;
-
-        let activePlyr = null;
-
-        let scale = 1;
-        let translateX = 0;
-        let translateY = 0;
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-        let lastTap = 0;
-        let pinchStartDistance = 0;
-        let pinchStartScale = 1;
-        let pinchLastCenter = null;
-        let zoomCleanup = null;
-
-        function getDistance(touchA, touchB) {
-            return Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
-        }
-
-        function getTouchCenter(touchA, touchB) {
-            return {
-                x: (touchA.clientX + touchB.clientX) / 2,
-                y: (touchA.clientY + touchB.clientY) / 2
-            };
-        }
-
-        function fitZoomContent(wrapper, content) {
-            if (!wrapper || !content) return;
-            const img = content.querySelector('img');
-            if (!img) return;
-
-            const wrapperWidth = wrapper.clientWidth || wrapper.getBoundingClientRect().width;
-            const wrapperHeight = wrapper.clientHeight || wrapper.getBoundingClientRect().height;
-            const naturalWidth = img.naturalWidth || wrapperWidth || 1;
-            const naturalHeight = img.naturalHeight || wrapperHeight || 1;
-            const ratio = Math.min(wrapperWidth / naturalWidth, wrapperHeight / naturalHeight, 1);
-            const fittedWidth = Math.max(1, naturalWidth * ratio);
-            const fittedHeight = Math.max(1, naturalHeight * ratio);
-
-            content.style.width = `${fittedWidth}px`;
-            content.style.height = `${fittedHeight}px`;
-        }
-
-        function clampTranslate(wrapper, content) {
-            if (!wrapper || !content || scale <= 1) {
-                translateX = 0;
-                translateY = 0;
-                return;
-            }
-
-            const wrapperWidth = wrapper.clientWidth || wrapper.getBoundingClientRect().width;
-            const wrapperHeight = wrapper.clientHeight || wrapper.getBoundingClientRect().height;
-            const baseWidth = content.offsetWidth || content.getBoundingClientRect().width / Math.max(scale, 1);
-            const baseHeight = content.offsetHeight || content.getBoundingClientRect().height / Math.max(scale, 1);
-            const scaledWidth = baseWidth * scale;
-            const scaledHeight = baseHeight * scale;
-            const maxX = Math.max(0, (scaledWidth - wrapperWidth) / 2);
-            const maxY = Math.max(0, (scaledHeight - wrapperHeight) / 2);
-
-            translateX = Math.min(maxX, Math.max(-maxX, translateX));
-            translateY = Math.min(maxY, Math.max(-maxY, translateY));
-        }
-
-        function zoomToPoint(nextScale, clientX, clientY, wrapper, content) {
-            const targetScale = Math.min(Math.max(1, nextScale), 5);
-            if (!wrapper || !content) {
-                scale = targetScale;
-                if (scale === 1) {
-                    translateX = 0;
-                    translateY = 0;
-                }
-                updateTransform(wrapper, content);
-                return;
-            }
-
-            const previousScale = scale || 1;
-            const rect = wrapper.getBoundingClientRect();
-            const pointX = clientX - (rect.left + rect.width / 2);
-            const pointY = clientY - (rect.top + rect.height / 2);
-            const ratio = targetScale / previousScale;
-
-            translateX = (1 - ratio) * pointX + ratio * translateX;
-            translateY = (1 - ratio) * pointY + ratio * translateY;
-            scale = targetScale;
-
-            if (scale === 1) {
-                translateX = 0;
-                translateY = 0;
-            }
-
-            updateTransform(wrapper, content);
-        }
-
-        function resetZoom() {
-            scale = 1;
-            translateX = 0;
-            translateY = 0;
-            updateTransform();
-        }
-
-        function updateTransform(wrapper = null, content = null) {
-            const target = content || document.getElementById('zoomContent');
-            const targetWrapper = wrapper || target?.parentElement;
-            if (target) {
-                clampTranslate(targetWrapper, target);
-                target.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-            }
-        }
-
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -550,7 +327,6 @@
             });
             langButtons.forEach((btn) => btn.classList.toggle('is-active', btn.dataset.lang === currentLang));
 
-            // Обновление состояния мобильного селектора
             if (mobileLangCurrent) {
                 mobileLangCurrent.textContent = langLabels[currentLang] || currentLang.toUpperCase();
             }
@@ -575,8 +351,8 @@
             const safeCover = apartment.cover || media[0]?.src || 'https://placehold.co/1200x900/e7e5e4/78716c?text=Polex+Estate';
 
             article.innerHTML = `
-          <button type="button" class="media-open media-thumb relative block aspect-[4/3] w-full overflow-hidden bg-stone-100 dark:bg-stone-800 text-left">
-            <img src="${safeCover}" alt="${hasTitle ? data.title : 'Polex Estate'}" class="h-full w-full object-cover" />
+          <button type="button" class="media-open media-thumb relative block w-full overflow-hidden bg-stone-100 dark:bg-stone-800 text-left">
+            <img src="${safeCover}" alt="${hasTitle ? data.title : 'Polex Estate'}" class="block w-full max-h-[75vh] object-contain bg-black" onerror="this.src='https://placehold.co/1200x900/e7e5e4/78716c?text=Image+Not+Found'"/>
             <span class="absolute bottom-3 right-3 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white">${materialsLabel}</span>
           </button>
           <div class="flex flex-col p-4 sm:p-5">
@@ -600,7 +376,84 @@
             </div>
           </div>`;
 
-            article.querySelector('.media-open').addEventListener('click', () => openLightbox(media.length ? media : [{ type: 'image', src: safeCover, alt: hasTitle ? data.title : 'Polex Estate' }], 0));
+            // Подключение Fancybox
+            article.querySelector('.media-open').addEventListener('click', async () => {
+                const itemsToLoad = media.length ? media : [{ type: 'image', src: safeCover, alt: hasTitle ? data.title : 'Polex Estate' }];
+
+                const fancyboxData = await Promise.all(itemsToLoad.map((item) => {
+                    return new Promise((resolve) => {
+                        const isLocalVideo = item.src && item.src.match(/\.(mp4|webm|ogg|mov)$/i);
+                        const isYouTubeOrVimeo = item.src && item.src.match(/(youtube\.com|youtu\.be|vimeo\.com)/i);
+                        const isVideo = item.type === 'video' || isLocalVideo || isYouTubeOrVimeo;
+
+                        if (!isVideo) {
+                            resolve({
+                                src: item.src,
+                                type: 'image',
+                                thumb: item.poster || item.src,
+                                caption: item.alt || data.title,
+                            });
+                            return;
+                        }
+
+                        if (isYouTubeOrVimeo) {
+                            resolve({
+                                src: item.src,
+                                type: 'video',
+                                thumb: item.poster || item.src,
+                                caption: item.alt || data.title,
+                            });
+                            return;
+                        }
+
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        video.src = item.src;
+
+                        video.onloadedmetadata = () => {
+                            const vw = video.videoWidth || 720;
+                            const vh = video.videoHeight || 1280;
+
+                            resolve({
+                                src: item.src,
+                                type: 'html5video',
+                                thumb: item.poster || item.src,
+                                caption: item.alt || data.title,
+                                width: vw,
+                                height: vh,
+                            });
+                        };
+
+                        video.onerror = () => {
+                            resolve({
+                                src: item.src,
+                                type: 'html5video',
+                                thumb: item.poster || item.src,
+                                caption: item.alt || data.title,
+                                width: 720,
+                                height: 1280,
+                            });
+                        };
+                    });
+                }));
+
+                Fancybox.show(fancyboxData, {
+                    Images: {
+                        zoom: false,
+                    },
+                    Thumbs: {
+                        type: "modern"
+                    },
+                    Toolbar: {
+                        display: {
+                            left: ["infobar"],
+                            middle: [],
+                            right: ["slideshow", "thumbs", "close"],
+                        },
+                    }
+                });
+            });
+
             article.querySelector('.desc-toggle').addEventListener('click', (event) => {
                 event.stopPropagation();
                 toggleDescription(cardId, article);
@@ -633,6 +486,7 @@
             openCardId = cardId;
             syncDescButtons();
         }
+
         function toggleDescription(cardId, article) {
             if (openCardId === cardId) {
                 closeDescriptions();
@@ -689,16 +543,12 @@
 
             if (visible.length > 0) {
                 emptyState.classList.add('hidden');
-
-                // Обновление и показ счетчика в виде бейджа
                 resultsCount.textContent = t('shown').replace('{n}', visible.length);
                 resultsCountContainer.classList.remove('hidden');
 
                 visible.forEach((apartment, index) => grid.appendChild(createCard(apartment, index)));
             } else {
                 emptyState.classList.remove('hidden');
-
-                // Скрытие счетчика, если элементов нет
                 resultsCountContainer.classList.add('hidden');
             }
         }
@@ -719,282 +569,22 @@
             renderGrid();
         }
 
-        function renderLightbox() {
-            if (activePlyr) {
-                activePlyr.destroy();
-                activePlyr = null;
-            }
-
-            const item = lightboxItems[lightboxIndex];
-            if (!item) return;
-
-            stage.innerHTML = '';
-
-            if (item.type === 'video') {
-                const video = document.createElement('video');
-                video.src = item.src;
-                video.poster = item.poster || '';
-                video.controls = true;
-                video.playsInline = true;
-                video.autoplay = true;
-                stage.appendChild(video);
-
-                const isMobile = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
-
-                activePlyr = new Plyr(video, {
-                    autoplay: true,
-                    clickToPlay: true,
-                    controls: [
-                        'play-large',
-                        'play',
-                        'progress',
-                        'current-time',
-                        'mute',
-                        ...(isMobile ? [] : ['volume']),
-                        'fullscreen'
-                    ]
-                });
-
-                let lastTapTime = 0;
-                activePlyr.on('ready', () => {
-                    const wrapper = activePlyr.elements.wrapper;
-                    if (wrapper) {
-                        wrapper.addEventListener('touchend', (e) => {
-                            if (!e.target.closest('.plyr__controls') && !e.target.closest('.plyr__control')) {
-                                if (Math.abs(touchDeltaX) < 10) {
-                                    const currentTime = new Date().getTime();
-                                    const tapLength = currentTime - lastTapTime;
-
-                                    if (tapLength < 300 && tapLength > 0) {
-                                        e.preventDefault();
-                                        activePlyr.togglePlay();
-                                    }
-
-                                    lastTapTime = currentTime;
-                                }
-                            }
-                        }, { passive: false });
-                    }
-                });
-            } else {
-                const wrapper = document.createElement('div');
-                wrapper.id = 'zoomWrapper';
-                wrapper.className = 'h-full w-[calc(100%+6rem)] -mx-12 px-0 py-1 sm:mx-0 sm:w-full sm:px-6 sm:py-2';
-
-                const content = document.createElement('div');
-                content.id = 'zoomContent';
-
-                const img = document.createElement('img');
-                img.src = item.src;
-                img.alt = item.alt || '';
-
-                content.appendChild(img);
-                wrapper.appendChild(content);
-                stage.appendChild(wrapper);
-
-                setupZoomEvents(wrapper, content);
-            }
-
-            caption.textContent = item.alt || '';
-            counter.textContent = `${lightboxIndex + 1} / ${lightboxItems.length}`;
-            thumbs.innerHTML = '';
-
-            lightboxItems.forEach((thumb, index) => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'shrink-0 overflow-hidden rounded-2xl border transition ' + (index === lightboxIndex ? 'border-white/70' : 'border-white/10 opacity-70');
-                button.innerHTML = thumb.type === 'video'
-                    ? `<div class="relative h-16 w-24 bg-white/5"><img src="${thumb.poster || ''}" alt="${thumb.alt || t('galleryItem')}" class="h-full w-full object-cover" /><span class="absolute inset-0 flex items-center justify-center text-white">▶</span></div>`
-                    : `<img src="${thumb.src}" alt="${thumb.alt || t('galleryItem')}" class="h-16 w-24 object-cover" />`;
-                button.addEventListener('click', () => {
-                    lightboxIndex = index;
-                    renderLightbox();
-                });
-                thumbs.appendChild(button);
-            });
-        }
-
-        function setupZoomEvents(wrapper, content) {
-            if (zoomCleanup) {
-                zoomCleanup();
-                zoomCleanup = null;
-            }
-
-            resetZoom();
-
-            const img = content.querySelector('img');
-            const syncContentSize = () => {
-                fitZoomContent(wrapper, content);
-                updateTransform(wrapper, content);
-            };
-
-            const zoomBy = (delta, clientX, clientY) => {
-                const nextScale = Math.min(Math.max(1, scale + delta), 5);
-                zoomToPoint(nextScale, clientX, clientY, wrapper, content);
-            };
-
-            const onWheel = (e) => {
-                e.preventDefault();
-                zoomBy(e.deltaY > 0 ? -0.2 : 0.2, e.clientX, e.clientY);
-            };
-
-            const startDrag = (e) => {
-                if (e.touches && e.touches.length === 2) {
-                    pinchStartDistance = getDistance(e.touches[0], e.touches[1]);
-                    pinchStartScale = scale;
-                    pinchLastCenter = getTouchCenter(e.touches[0], e.touches[1]);
-                    isDragging = false;
-                    return;
-                }
-
-                if (scale <= 1) return;
-                isDragging = true;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                startX = clientX - translateX;
-                startY = clientY - translateY;
-            };
-
-            const moveDrag = (e) => {
-                if (e.touches && e.touches.length === 2) {
-                    e.preventDefault();
-                    const nextDistance = getDistance(e.touches[0], e.touches[1]);
-                    const center = getTouchCenter(e.touches[0], e.touches[1]);
-
-                    if (pinchLastCenter) {
-                        translateX += center.x - pinchLastCenter.x;
-                        translateY += center.y - pinchLastCenter.y;
-                    }
-
-                    if (pinchStartDistance > 0) {
-                        const scaleFactor = nextDistance / pinchStartDistance;
-                        const nextScale = Math.min(Math.max(1, pinchStartScale * scaleFactor), 5);
-                        zoomToPoint(nextScale, center.x, center.y, wrapper, content);
-                    } else {
-                        updateTransform(wrapper, content);
-                    }
-
-                    pinchLastCenter = center;
-                    return;
-                }
-
-                if (!isDragging) return;
-                if (e.touches) e.preventDefault();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                translateX = clientX - startX;
-                translateY = clientY - startY;
-                updateTransform(wrapper, content);
-            };
-
-            const endDrag = () => {
-                isDragging = false;
-                pinchStartDistance = 0;
-                pinchStartScale = scale;
-                pinchLastCenter = null;
-            };
-
-            const handleTap = (e) => {
-                const now = Date.now();
-                if (now - lastTap < 300) {
-                    if (scale > 1) resetZoom();
-                    else zoomToPoint(2.5, e.clientX, e.clientY, wrapper, content);
-                }
-                lastTap = now;
-            };
-
-            if (img) {
-                if (img.complete) syncContentSize();
-                else img.addEventListener('load', syncContentSize, { once: true });
-            }
-
-            wrapper.addEventListener('wheel', onWheel, { passive: false });
-            wrapper.addEventListener('mousedown', startDrag);
-            window.addEventListener('mousemove', moveDrag);
-            window.addEventListener('mouseup', endDrag);
-            wrapper.addEventListener('touchstart', startDrag, { passive: false });
-            wrapper.addEventListener('touchmove', moveDrag, { passive: false });
-            wrapper.addEventListener('touchend', endDrag);
-            wrapper.addEventListener('touchcancel', endDrag);
-            wrapper.addEventListener('click', handleTap);
-            window.addEventListener('resize', syncContentSize);
-
-            zoomCleanup = () => {
-                wrapper.removeEventListener('wheel', onWheel);
-                wrapper.removeEventListener('mousedown', startDrag);
-                window.removeEventListener('mousemove', moveDrag);
-                window.removeEventListener('mouseup', endDrag);
-                wrapper.removeEventListener('touchstart', startDrag);
-                wrapper.removeEventListener('touchmove', moveDrag);
-                wrapper.removeEventListener('touchend', endDrag);
-                wrapper.removeEventListener('touchcancel', endDrag);
-                wrapper.removeEventListener('click', handleTap);
-                window.removeEventListener('resize', syncContentSize);
-            };
-        }
-
-        function openLightbox(items, startIndex) {
-            lightboxItems = items;
-            lightboxIndex = startIndex || 0;
-            renderLightbox();
-            lightbox.classList.add('is-open');
-            lightbox.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-            if (activePlyr) {
-                activePlyr.destroy();
-                activePlyr = null;
-            }
-            if (zoomCleanup) {
-                zoomCleanup();
-                zoomCleanup = null;
-            }
-
-            lightbox.classList.remove('is-open');
-            lightbox.setAttribute('aria-hidden', 'true');
-            stage.innerHTML = '';
-            thumbs.innerHTML = '';
-            document.body.style.overflow = '';
-        }
-
-        function stepLightbox(delta) {
-            if (!lightboxItems.length) return;
-            lightboxIndex = (lightboxIndex + delta + lightboxItems.length) % lightboxItems.length;
-            renderLightbox();
-        }
-
-        closeBtn.addEventListener('click', closeLightbox);
-        lightboxBackdrop.addEventListener('click', closeLightbox);
-        prevBtn.addEventListener('click', () => stepLightbox(-1));
-        nextBtn.addEventListener('click', () => stepLightbox(1));
-        stage.addEventListener('touchstart', (event) => {
-            touchStartX = event.changedTouches[0].clientX;
-            touchDeltaX = 0;
-        }, { passive: true });
-        stage.addEventListener('touchmove', (event) => {
-            touchDeltaX = event.changedTouches[0].clientX - touchStartX;
-        }, { passive: true });
-        stage.addEventListener('touchend', () => {
-            if (scale > 1) return;
-            if (Math.abs(touchDeltaX) > 45) stepLightbox(touchDeltaX > 0 ? -1 : 1);
-        }, { passive: true });
-
         document.addEventListener('click', (event) => {
             if (!openCardId) return;
+            // Убеждаемся, что клик не был внутри Fancybox, чтобы не закрывать описание при взаимодействии с галереей
+            if (event.target.closest('.fancybox__container')) return;
+
             const insideCard = event.target.closest('article');
             if (!insideCard) closeDescriptions();
         });
 
         document.addEventListener('keydown', (event) => {
-            if (lightbox.classList.contains('is-open')) {
-                if (event.key === 'Escape') closeLightbox();
-                if (event.key === 'ArrowLeft') stepLightbox(-1);
-                if (event.key === 'ArrowRight') stepLightbox(1);
-                return;
+            if (event.key === 'Escape' && openCardId) {
+                // Если открыт Fancybox, он сам обработает Escape, нам не нужно закрывать описание
+                if (!document.querySelector('.fancybox__container')) {
+                    closeDescriptions();
+                }
             }
-            if (event.key === 'Escape' && openCardId) closeDescriptions();
         });
 
         langButtons.forEach((btn) => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
