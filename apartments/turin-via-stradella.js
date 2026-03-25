@@ -7,7 +7,7 @@ window.registerApartment({
         { type: 'image', src: './assets/turin-via-stradella/cover.jpg', alt: 'photo' },
         {
             type: 'video',
-            src: './assets/turin-via-stradella/video.mp4',
+            src: './assets/turin-via-stradella/video.MP4',
             poster: './assets/turin-via-stradella/cover.jpg',
             alt: 'video'
         }

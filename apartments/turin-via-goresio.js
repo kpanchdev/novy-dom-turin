@@ -7,7 +7,7 @@ window.registerApartment({
     { type: 'image', src: './assets/turin-via-goresio/cover.jpg', alt: 'photo' },
     {
         type: 'video',
-        src: './assets/turin-via-goresio/video.mp4',
+        src: './assets/turin-via-goresio/video.MP4',
         poster: './assets/turin-via-goresio/cover.jpg',
         alt: 'video'
     }

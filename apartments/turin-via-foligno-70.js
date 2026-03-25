@@ -7,7 +7,7 @@ window.registerApartment({
     { type: 'image', src: './assets/turin-via-foligno-70/cover.jpg', alt: 'photo' },
     {
         type: 'video',
-        src: './assets/turin-via-foligno-70/video.mp4',
+        src: './assets/turin-via-foligno-70/video.MP4',
         poster: './assets/turin-via-foligno-70/cover.jpg',
         alt: 'video'
     }

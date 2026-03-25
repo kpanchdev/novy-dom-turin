@@ -7,7 +7,7 @@ window.registerApartment({
     { type: 'image', src: './assets/turin-via-borgaro-108/cover.jpg', alt: 'photo' },
     {
         type: 'video',
-        src: './assets/turin-via-borgaro-108/video.mp4',
+        src: './assets/turin-via-borgaro-108/video.MP4',
         poster: './assets/turin-via-borgaro-108/cover.jpg',
         alt: 'video'
     }

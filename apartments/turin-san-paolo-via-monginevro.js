@@ -7,7 +7,7 @@ window.registerApartment({
         { type: 'image', src: './assets/turin-san-paolo-via-monginevro/cover.jpg', alt: 'photo' },
         {
             type: 'video',
-            src: './assets/turin-san-paolo-via-monginevro/video.mp4',
+            src: './assets/turin-san-paolo-via-monginevro/video.MP4',
             poster: './assets/turin-san-paolo-via-monginevro/cover.jpg',
             alt: 'video'
         }
