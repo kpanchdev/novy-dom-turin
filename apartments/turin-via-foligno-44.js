@@ -14,7 +14,7 @@ window.registerApartment({
   ],
   i18n: {
     ru: {
-      title: 'Аренда квартиры в Турине после ремонта',
+      title: 'После ремонта Виа Фолиньо',
       price: '750 € в месяц + коммунальные',
       address: 'Via Foligno 44, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Foligno+44,+Torino',

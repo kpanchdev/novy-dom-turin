@@ -14,7 +14,7 @@ window.registerApartment({
   ],
   i18n: {
     ru: {
-      title: 'Аренда квартиры после ремонта в Турине',
+      title: 'После ремонта',
       price: '650 € в месяц + коммунальные',
       address: 'Via Borgaro 108, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Borgaro+108,+Torino',

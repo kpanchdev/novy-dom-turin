@@ -14,7 +14,7 @@ window.registerApartment({
   ],
   i18n: {
     ru: {
-      title: 'Аренда квартиры после ремонта в Турине',
+      //title: 'Аренда квартиры после ремонта в Турине',
       price: '700 € в месяц + коммунальные',
       address: 'Via Goresio, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Goresio,+Torino',

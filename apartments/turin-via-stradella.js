@@ -14,7 +14,7 @@ window.registerApartment({
     ],
     i18n: {
         ru: {
-            title: 'Аренда квартиры в Турине',
+            title: 'Страделла с балконом',
             price: '650 € в месяц + коммунальные',
             address: 'Via Stradella, Torino',
             mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Stradella,+Torino',

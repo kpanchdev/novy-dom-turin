@@ -14,7 +14,7 @@ window.registerApartment({
     ],
     i18n: {
         ru: {
-            title: 'Аренда квартиры в Турине, 2 спальни',
+            title: '2 спальни',
             price: '750 € в месяц + коммунальные',
             address: 'Borgo Vittoria, Torino',
             mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Borgo+Vittoria,+Torino',
