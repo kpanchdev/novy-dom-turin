@@ -14,7 +14,7 @@ window.registerApartment({
   ],
   i18n: {
     ru: {
-      //title: 'Аренда квартиры в Турине',
+      title: '3 этаж',
       price: '700 € в месяц + коммунальные',
       address: 'Via Foligno 70, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Foligno+70,+Torino',

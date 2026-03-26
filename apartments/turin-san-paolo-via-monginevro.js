@@ -14,7 +14,7 @@ window.registerApartment({
     ],
     i18n: {
         ru: {
-            //title: '',
+            title: 'Сан паоло',
             price: '750 € в месяц + коммунальные',
             address: 'San Paolo / Via Monginevro, Torino',
             mapsUrl: 'https://www.google.com/maps/search/?api=1&query=San+Paolo,+Torino',

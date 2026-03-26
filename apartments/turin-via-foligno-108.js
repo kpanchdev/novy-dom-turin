@@ -14,7 +14,7 @@ window.registerApartment({
   ],
   i18n: {
     ru: {
-      //title: 'Аренда квартиры после ремонта в Турине',
+      title: 'Вид на альпы',
       price: '650 € в месяц + коммунальные',
       address: 'Via Foligno 108, Torino',
       mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Via+Foligno+108,+Torino',
