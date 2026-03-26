@@ -71,7 +71,8 @@
             width: auto !important;
             height: auto !important;
             max-width: min(92vw, 520px) !important;
-            max-height: 92vh !important;
+            max-height: calc(100vh - 90px) !important;
+            margin-bottom: 90px !important; /* Отступ снизу для миниатюр */
             padding: 0 !important;
             background: transparent !important;
         }
@@ -83,7 +84,7 @@
             width: auto !important;
             height: auto !important;
             max-width: min(92vw, 520px) !important;
-            max-height: 92vh !important;
+            max-height: calc(100vh - 90px) !important;
             aspect-ratio: auto !important;
             object-fit: contain !important;
         }
@@ -92,9 +93,9 @@
         @media (max-width: 767px), (max-height: 499px) {
             .fancybox__container .fancybox__content:has(video),
             .fancybox__container .fancybox__content:has(iframe) {
-                max-height: 100dvh !important;
+                max-height: calc(100dvh - 90px) !important; /* Учитываем миниатюры */
                 max-width: 100vw !important;
-                margin-bottom: 0 !important;
+                margin-bottom: 90px !important; /* Отступ снизу для миниатюр */
                 margin-top: 0 !important;
             }
             .fancybox__container .f-html5video,
@@ -102,7 +103,7 @@
             .fancybox__container video,
             .fancybox__container iframe {
                 max-width: 100vw !important;
-                max-height: 100dvh !important;
+                max-height: calc(100dvh - 90px) !important;
             }
         }
 
@@ -111,13 +112,14 @@
             .fancybox__container .fancybox__content:has(video),
             .fancybox__container .fancybox__content:has(iframe) {
                 margin-top: 64px !important;
-                max-height: calc(92vh - 64px) !important;
+                margin-bottom: 90px !important; /* Отступ снизу для миниатюр */
+                max-height: calc(100vh - 154px) !important; /* 64 (верх) + 90 (низ) = 154 */
             }
             .fancybox__container .f-html5video,
             .fancybox__container .f-video,
             .fancybox__container video,
             .fancybox__container iframe {
-                max-height: calc(92vh - 64px) !important;
+                max-height: calc(100vh - 154px) !important;
             }
         }
 
