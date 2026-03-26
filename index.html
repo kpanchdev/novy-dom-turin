@@ -20,7 +20,7 @@
     </script>
 
     <!-- Подключаем стили Fancybox -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.5/dist/fancybox/fancybox.css" />
 
     <style>
         .card-shadow { box-shadow: 0 18px 50px rgba(28, 25, 23, .08); }
@@ -166,7 +166,7 @@
 </main>
 
 <!-- Подключаем скрипт Fancybox -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.5/dist/fancybox/fancybox.umd.js"></script>
 
 <script>
     window.__APARTMENTS = [];
@@ -325,6 +325,26 @@
         let currentLang = getPreferredLang();
         let activeTab = 'rent';
         let openCardId = null;
+        const galleryRegistry = new Map();
+
+        function startFancyboxFromUrl() {
+            const HashPlugin = Fancybox?.Plugins?.Hash;
+
+            if (!HashPlugin || Fancybox.getInstance()) return;
+
+            const parsed = HashPlugin.parseURL();
+            if (!parsed || !parsed.slug) return;
+
+            const gallery = galleryRegistry.get(parsed.slug);
+            if (!gallery) return;
+
+            Fancybox.show(gallery.items, {
+                ...gallery.options,
+                startIndex: Math.max(0, (parsed.index || 1) - 1),
+            });
+        }
+
+        window.addEventListener('hashchange', startFancyboxFromUrl, false);
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
@@ -383,49 +403,6 @@
                 mobileLangDropdown.classList.remove('flex');
             }
         }
-
-
-        let galleryHistoryArmed = false;
-        let galleryClosingFromBack = false;
-
-        function isGalleryOpen() {
-            return Boolean(document.querySelector('.fancybox__container'));
-        }
-
-        function armGalleryBackClose() {
-            if (galleryHistoryArmed) return;
-            try {
-                window.history.pushState({ galleryOpen: true }, '', window.location.href);
-                galleryHistoryArmed = true;
-            } catch (error) {
-                galleryHistoryArmed = false;
-            }
-        }
-
-        function disarmGalleryBackClose() {
-            if (!galleryHistoryArmed || galleryClosingFromBack) return;
-            galleryHistoryArmed = false;
-            try {
-                window.history.back();
-            } catch (error) {
-                // no-op
-            }
-        }
-
-        window.addEventListener('popstate', () => {
-            if (!isGalleryOpen()) {
-                galleryHistoryArmed = false;
-                return;
-            }
-
-            galleryClosingFromBack = true;
-            Fancybox.close();
-            galleryHistoryArmed = false;
-
-            setTimeout(() => {
-                galleryClosingFromBack = false;
-            }, 0);
-        });
 
         function createCard(apartment, index) {
             const data = localized(apartment);
@@ -520,13 +497,16 @@
                 const spinner = document.getElementById(spinnerId);
                 if (spinner) spinner.remove();
 
-                armGalleryBackClose();
+                const gallerySlug = `apartment-${cardId}`;
 
-                Fancybox.show(fancyboxData, {
-                    Images: { zoom: true,
+                const galleryOptions = {
+                    slug: gallerySlug,
+                    Images: {
+                        zoom: true,
                         Panzoom: {
                             maxScale: 3
-                        }},
+                        }
+                    },
                     Thumbs: { type: "modern" },
                     Toolbar: {
                         display: {
@@ -534,15 +514,15 @@
                             middle: [],
                             right: ["zoomIn", "thumbs", "close"],
                         },
-                    },
-                    on: {
-                        destroy: () => {
-                            if (!galleryClosingFromBack) {
-                                disarmGalleryBackClose();
-                            }
-                        }
                     }
+                };
+
+                galleryRegistry.set(gallerySlug, {
+                    items: fancyboxData,
+                    options: galleryOptions
                 });
+
+                Fancybox.show(fancyboxData, galleryOptions);
             });
 
             article.querySelector('.desc-toggle').addEventListener('click', (event) => {
@@ -683,6 +663,7 @@
 
         updateLangUI();
         setTab('rent');
+        startFancyboxFromUrl();
     });
 </script>
 </body>
