@@ -213,12 +213,6 @@
         });
         updateThemeIcons();
 
-        window.addEventListener('popstate', () => {
-            if (typeof Fancybox !== 'undefined' && Fancybox.getInstance()) {
-                Fancybox.close();
-            }
-        });
-
         // --- КЭШ И ФОНОВАЯ ЗАГРУЗКА МЕТАДАННЫХ ВИДЕО ---
         const videoMetaCache = {};
         function preloadVideoMeta(src) {
@@ -390,6 +384,49 @@
             }
         }
 
+
+        let galleryHistoryArmed = false;
+        let galleryClosingFromBack = false;
+
+        function isGalleryOpen() {
+            return Boolean(document.querySelector('.fancybox__container'));
+        }
+
+        function armGalleryBackClose() {
+            if (galleryHistoryArmed) return;
+            try {
+                window.history.pushState({ galleryOpen: true }, '', window.location.href);
+                galleryHistoryArmed = true;
+            } catch (error) {
+                galleryHistoryArmed = false;
+            }
+        }
+
+        function disarmGalleryBackClose() {
+            if (!galleryHistoryArmed || galleryClosingFromBack) return;
+            galleryHistoryArmed = false;
+            try {
+                window.history.back();
+            } catch (error) {
+                // no-op
+            }
+        }
+
+        window.addEventListener('popstate', () => {
+            if (!isGalleryOpen()) {
+                galleryHistoryArmed = false;
+                return;
+            }
+
+            galleryClosingFromBack = true;
+            Fancybox.close();
+            galleryHistoryArmed = false;
+
+            setTimeout(() => {
+                galleryClosingFromBack = false;
+            }, 0);
+        });
+
         function createCard(apartment, index) {
             const data = localized(apartment);
             const article = document.createElement('article');
@@ -483,17 +520,9 @@
                 const spinner = document.getElementById(spinnerId);
                 if (spinner) spinner.remove();
 
+                armGalleryBackClose();
+
                 Fancybox.show(fancyboxData, {
-                    on: {
-                        init: () => {
-                            window.history.pushState({ fancybox: true }, "");
-                        },
-                        destroy: () => {
-                            if (window.history.state && window.history.state.fancybox) {
-                                window.history.back();
-                            }
-                        }
-                    },
                     Images: { zoom: true,
                         Panzoom: {
                             maxScale: 3
@@ -505,6 +534,13 @@
                             middle: [],
                             right: ["zoomIn", "thumbs", "close"],
                         },
+                    },
+                    on: {
+                        destroy: () => {
+                            if (!galleryClosingFromBack) {
+                                disarmGalleryBackClose();
+                            }
+                        }
                     }
                 });
             });
