@@ -213,6 +213,12 @@
         });
         updateThemeIcons();
 
+        window.addEventListener('popstate', () => {
+            if (typeof Fancybox !== 'undefined' && Fancybox.getInstance()) {
+                Fancybox.close();
+            }
+        });
+
         // --- КЭШ И ФОНОВАЯ ЗАГРУЗКА МЕТАДАННЫХ ВИДЕО ---
         const videoMetaCache = {};
         function preloadVideoMeta(src) {
@@ -478,8 +484,16 @@
                 if (spinner) spinner.remove();
 
                 Fancybox.show(fancyboxData, {
-                    id: "gallery",
-                    Hash: true,
+                    on: {
+                        init: () => {
+                            window.history.pushState({ fancybox: true }, "");
+                        },
+                        destroy: () => {
+                            if (window.history.state && window.history.state.fancybox) {
+                                window.history.back();
+                            }
+                        }
+                    },
                     Images: { zoom: true,
                         Panzoom: {
                             maxScale: 3
