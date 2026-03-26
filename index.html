@@ -88,24 +88,26 @@
             object-fit: contain !important;
         }
 
-        /* Отступы для мобильных устройств, чтобы видео не перекрывало нижнюю панель */
-        @media (max-width: 767px) {
+        /* Мобильные устройства (включая альбомную ориентацию телефонов) - видео на весь экран как фото */
+        @media (max-width: 767px), (max-height: 499px) {
             .fancybox__container .fancybox__content:has(video),
             .fancybox__container .fancybox__content:has(iframe) {
-                max-height: calc(100dvh - 160px) !important;
-                margin-bottom: 35px !important;
+                max-height: 100dvh !important;
+                max-width: 100vw !important;
+                margin-bottom: 0 !important;
+                margin-top: 0 !important;
             }
             .fancybox__container .f-html5video,
             .fancybox__container .f-video,
             .fancybox__container video,
             .fancybox__container iframe {
-                max-width: 100% !important;
-                max-height: calc(100dvh - 160px) !important;
+                max-width: 100vw !important;
+                max-height: 100dvh !important;
             }
         }
 
         /* Отступ сверху на десктопе, чтобы видео не уходило за верхнюю грань */
-        @media (min-width: 768px) {
+        @media (min-width: 768px) and (min-height: 500px) {
             .fancybox__container .fancybox__content:has(video),
             .fancybox__container .fancybox__content:has(iframe) {
                 margin-top: 64px !important;
