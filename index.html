@@ -62,7 +62,7 @@
             --fancybox-color: #fff;
         }
 
-        /* Корректное отображение вертикальных видео в Fancybox */
+        /* Корректное отображение вертикальных видео в Fancybox (Десктоп - по умолчанию) */
         .fancybox__container .fancybox__content:has(video),
         .fancybox__container .fancybox__content:has(iframe) {
             width: auto !important;
@@ -82,6 +82,26 @@
             max-height: 92vh !important;
             aspect-ratio: auto !important;
             object-fit: contain !important;
+        }
+
+        /* Отступы для мобильных устройств, чтобы видео не перекрывало нижнюю панель */
+        @media (max-width: 767px) {
+            .fancybox__container .fancybox__content:has(video),
+            .fancybox__container .fancybox__content:has(iframe) {
+                max-height: calc(100dvh - 160px) !important;
+                margin-bottom: 35px !important;
+            }
+            .fancybox__container .f-html5video,
+            .fancybox__container .f-video,
+            .fancybox__container video,
+            .fancybox__container iframe {
+                max-height: calc(100dvh - 160px) !important;
+            }
+        }
+
+        /* Скрываем подпись (caption) */
+        .fancybox__caption {
+            display: none !important;
         }
     </style>
 </head>
@@ -192,6 +212,34 @@
             }
         });
         updateThemeIcons();
+
+        // --- КЭШ И ФОНОВАЯ ЗАГРУЗКА МЕТАДАННЫХ ВИДЕО ---
+        const videoMetaCache = {};
+        function preloadVideoMeta(src) {
+            if (videoMetaCache[src]) return videoMetaCache[src];
+
+            const promise = new Promise((resolve) => {
+                let resolved = false;
+                const finish = (w, h) => {
+                    if (resolved) return;
+                    resolved = true;
+                    resolve({ w, h });
+                };
+
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = src;
+
+                video.onloadedmetadata = () => finish(video.videoWidth || 720, video.videoHeight || 1280);
+                video.onerror = () => finish(720, 1280);
+
+                // Тайм-аут 1 секунда, чтобы не зависать навечно при медленном интернете
+                setTimeout(() => finish(720, 1280), 1000);
+            });
+
+            videoMetaCache[src] = promise;
+            return promise;
+        }
 
         const apartments = Array.isArray(window.__APARTMENTS) ? window.__APARTMENTS.filter(Boolean) : [];
         const grid = document.getElementById('apartmentsGrid');
@@ -376,79 +424,70 @@
             </div>
           </div>`;
 
-            // Подключение Fancybox
-            article.querySelector('.media-open').addEventListener('click', async () => {
+            // Запускаем предзагрузку метаданных видео НА ФОНЕ сразу при создании карточки
+            media.forEach(item => {
+                const isLocalVideo = item.src && item.src.match(/\.(mp4|webm|ogg|mov)$/i);
+                if (item.type === 'video' || isLocalVideo) {
+                    preloadVideoMeta(item.src);
+                }
+            });
+
+            article.querySelector('.media-open').addEventListener('click', async (e) => {
+                const btn = e.currentTarget;
+                const spinnerId = 'spinner-' + cardId;
+
+                // Показываем лоадер на случай, если данные еще не успели загрузиться на фоне
+                if (!document.getElementById(spinnerId)) {
+                    btn.insertAdjacentHTML('beforeend', `
+                        <div id="${spinnerId}" class="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                            <svg class="h-8 w-8 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                    `);
+                }
+
                 const itemsToLoad = media.length ? media : [{ type: 'image', src: safeCover, alt: hasTitle ? data.title : 'Polex Estate' }];
 
-                const fancyboxData = await Promise.all(itemsToLoad.map((item) => {
-                    return new Promise((resolve) => {
-                        const isLocalVideo = item.src && item.src.match(/\.(mp4|webm|ogg|mov)$/i);
-                        const isYouTubeOrVimeo = item.src && item.src.match(/(youtube\.com|youtu\.be|vimeo\.com)/i);
-                        const isVideo = item.type === 'video' || isLocalVideo || isYouTubeOrVimeo;
+                const fancyboxData = await Promise.all(itemsToLoad.map(async (item) => {
+                    const isLocalVideo = item.src && item.src.match(/\.(mp4|webm|ogg|mov)$/i);
+                    const isYouTubeOrVimeo = item.src && item.src.match(/(youtube\.com|youtu\.be|vimeo\.com)/i);
+                    const isVideo = item.type === 'video' || isLocalVideo || isYouTubeOrVimeo;
 
-                        if (!isVideo) {
-                            resolve({
-                                src: item.src,
-                                type: 'image',
-                                thumb: item.poster || item.src,
-                                caption: item.alt || data.title,
-                            });
-                            return;
-                        }
+                    if (!isVideo) {
+                        return { src: item.src, type: 'image', thumb: item.poster || item.src, caption: item.alt || data.title };
+                    }
 
-                        if (isYouTubeOrVimeo) {
-                            resolve({
-                                src: item.src,
-                                type: 'video',
-                                thumb: item.poster || item.src,
-                                caption: item.alt || data.title,
-                            });
-                            return;
-                        }
+                    if (isYouTubeOrVimeo) {
+                        return { src: item.src, type: 'video', thumb: item.poster || item.src, caption: item.alt || data.title };
+                    }
 
-                        const video = document.createElement('video');
-                        video.preload = 'metadata';
-                        video.src = item.src;
+                    // Ждем размеры (обычно они уже в кэше и отдаются моментально благодаря фоновой загрузке)
+                    const dims = await preloadVideoMeta(item.src);
 
-                        video.onloadedmetadata = () => {
-                            const vw = video.videoWidth || 720;
-                            const vh = video.videoHeight || 1280;
-
-                            resolve({
-                                src: item.src,
-                                type: 'html5video',
-                                thumb: item.poster || item.src,
-                                caption: item.alt || data.title,
-                                width: vw,
-                                height: vh,
-                            });
-                        };
-
-                        video.onerror = () => {
-                            resolve({
-                                src: item.src,
-                                type: 'html5video',
-                                thumb: item.poster || item.src,
-                                caption: item.alt || data.title,
-                                width: 720,
-                                height: 1280,
-                            });
-                        };
-                    });
+                    return {
+                        src: item.src,
+                        type: 'html5video',
+                        thumb: item.poster || item.src,
+                        caption: item.alt || data.title,
+                        width: dims.w,
+                        height: dims.h,
+                    };
                 }));
 
+                // Убираем лоадер
+                const spinner = document.getElementById(spinnerId);
+                if (spinner) spinner.remove();
+
                 Fancybox.show(fancyboxData, {
-                    Images: {
-                        zoom: false,
-                    },
-                    Thumbs: {
-                        type: "modern"
-                    },
+                    Images: { zoom: true,
+                        Panzoom: {
+                            maxScale: 3
+                        }},
+                    Thumbs: { type: "modern" },
                     Toolbar: {
                         display: {
                             left: ["infobar"],
                             middle: [],
-                            right: ["slideshow", "thumbs", "close"],
+                            right: ["zoomIn", "thumbs", "close"],
                         },
                     }
                 });
